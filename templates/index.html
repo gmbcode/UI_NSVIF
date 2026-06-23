@@ -3,14 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask + Tailwind v4</title>
+    <title>Flask + Tailwind + Logto</title>
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 </head>
 <body class="bg-gray-100 flex items-center justify-center h-screen">
 
-    <div class="bg-white p-8 rounded-2xl shadow-lg">
-        <h1 class="text-4xl font-bold text-blue-600 mb-4">It Works!</h1>
-        <p class="text-gray-700">Flask and Tailwind CSS v4 are running perfectly.</p>
+    <div class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full mx-4 text-center">
+
+        {% if is_authenticated %}
+            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+                {{ user.username[0] | upper if user and user.username else 'U' }}
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Welcome Back!</h1>
+            <p class="text-gray-500 mb-6 truncate">
+                {{ user.email if user else 'Authenticated User' }}
+            </p>
+            <a href="{{ url_for('auth.sign_out') }}" class="block w-full bg-gray-200 hover:bg-red-500 hover:text-white text-gray-800 font-semibold py-3 px-4 rounded-xl transition duration-200">
+                Sign Out
+            </a>
+
+        {% else %}
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-blue-600 mb-2">Welcome</h1>
+                <p class="text-gray-600">Please sign in to access your dashboard.</p>
+            </div>
+            <a href="{{ url_for('auth.sign_in') }}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition duration-200">
+                Sign in securely
+            </a>
+        {% endif %}
+
     </div>
 
 </body>
