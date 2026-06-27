@@ -1,7 +1,7 @@
 # auth.py
 import os
 from flask import Blueprint, session, redirect, url_for, request
-from logto import LogtoClient, LogtoConfig, Storage
+from logto import LogtoClient, LogtoConfig, Storage, UserInfoScope
 from typing import Union
 
 # Define the blueprint
@@ -25,7 +25,9 @@ def get_logto_client() -> LogtoClient:
         LogtoConfig(
             endpoint=os.environ.get('LOGTO_ENDPOINT', ''),
             appId=os.environ.get('LOGTO_APP_ID', ''),
-            appSecret=os.environ.get('LOGTO_APP_SECRET', '')
+            appSecret=os.environ.get('LOGTO_APP_SECRET', ''),
+            # Explicitly request the email scope from Logto
+            scopes=[UserInfoScope.email]
         ),
         storage=SessionStorage()
     )

@@ -3,3 +3,4 @@
 node_modules/
 tailwindcss.exe
 .env
+__pycache__/

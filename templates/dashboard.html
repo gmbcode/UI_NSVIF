@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlotMySpace Dashboard</title>
+    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0e0e10; }
+        ::-webkit-scrollbar-thumb { background: #2e2e33; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+        .modal-active { display: flex !important; }
+        .modal-enter { opacity: 1 !important; transform: scale(1) !important; }
+    </style>
+</head>
+<body class="bg-[#0e0e10] text-[#f0f0f2] h-screen flex flex-col overflow-hidden">
+
+    <nav class="h-16 shrink-0 border-b border-[#2e2e33] bg-[#0e0e10] flex items-center justify-between px-6 z-50">
+
+        <div class="flex items-center gap-8">
+            <div class="flex items-center gap-2 text-indigo-500 font-bold text-lg">
+                <span>⌂</span><span>PlotMySpace</span>
+            </div>
+            <ul class="flex items-center gap-2">
+                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium text-sm">
+                    <span>⛶</span> Studio Workspace
+                </li>
+                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-40 text-zinc-400 font-medium text-sm cursor-not-allowed">
+                    <span>▦</span> Pitch & Pack <span class="text-xs">🔒</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3 border-r border-[#2e2e33] pr-4">
+                <div class="text-right">
+                    <div class="text-sm font-medium text-zinc-200">{{ user.name }}</div>
+                    <div class="text-[11px] text-zinc-500">{{ user.email }}</div>
+                </div>
+                <a href="{{ url_for('auth.sign_out') }}" class="p-1.5 rounded-md text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Sign Out">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                </a>
+            </div>
+            <button class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors">
+                ▶ Run Pipeline
+            </button>
+        </div>
+    </nav>
+
+    <main class="flex-1 p-6 overflow-hidden">
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 h-full">
+
+            <div class="lg:col-span-3 bg-[#1c1c1f] border border-[#2e2e33] rounded-xl flex flex-col overflow-hidden h-full">
+                <div class="p-4 border-b border-[#2e2e33] bg-[#18181b]">
+                    <h3 class="text-sm font-semibold flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        Planning Agent
+                    </h3>
+                    <p class="text-[11px] text-zinc-400 mt-1">Human-in-the-loop brief generator</p>
+                </div>
+
+                <div id="chatBox" class="flex-1 p-4 overflow-y-auto space-y-4 text-sm flex flex-col">
+                    <div class="self-start bg-[#2e2e33] text-zinc-100 px-3 py-2 rounded-lg max-w-[90%]">
+                        Hello {{ user.name.split()[0] if user.name else 'Architect' }}! I see we are planning a plot. What are your core requirements for the programme? (e.g. number of bedrooms, specific spaces)
+                    </div>
+                </div>
+
+                <div class="p-3 border-t border-[#2e2e33] bg-[#18181b]">
+                    <form id="chatForm" class="flex items-center gap-2">
+                        <input type="text" id="chatInput" placeholder="Type instructions..." class="flex-1 min-w-0 bg-[#0e0e10] border border-[#2e2e33] focus:border-indigo-500 rounded-lg px-3 py-2 text-sm outline-none" required>
+                        <button type="submit" class="shrink-0 p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors flex items-center justify-center">
+                            <svg class="w-4 h-4 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="lg:col-span-5 flex flex-col gap-4 h-full">
+                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 flex flex-col flex-1 relative">
+
+                    <div class="flex justify-between w-full items-center mb-3">
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-sm font-semibold">Boundary Editor</h3>
+                            <button id="btnViewTopology" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-[11px] font-medium transition-colors shadow-sm">
+                                View Topology
+                            </button>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <label class="flex items-center gap-2 text-[11px] text-zinc-400 cursor-pointer">
+                                <input type="checkbox" id="snapGridToggle" checked class="accent-indigo-500 rounded"> Snap to grid
+                            </label>
+                            <button id="btnShapeRect" class="px-2 py-1 bg-[#18181b] border border-[#2e2e33] hover:bg-[#26262b] rounded text-xs">Rect</button>
+                            <button id="btnShapeL" class="px-2 py-1 bg-[#18181b] border border-[#2e2e33] hover:bg-[#26262b] rounded text-xs">L-Shape</button>
+                        </div>
+                    </div>
+
+                    <div id="canvasContainer" class="w-full flex-1 border border-[#2e2e33] rounded-lg bg-[#18181b] relative overflow-hidden">
+                        <canvas id="plotCanvas" class="absolute inset-0 cursor-crosshair"></canvas>
+                    </div>
+
+                    <div class="flex justify-around items-center bg-[#18181b] border border-[#2e2e33] rounded-lg p-3 mt-3 text-xs">
+                        <div>Lot: <span id="valLotArea" class="font-semibold text-zinc-100">0</span> sq ft</div>
+                        <div>Footprint: <span id="valFootprintArea" class="font-semibold text-zinc-100">0</span> sq ft</div>
+                        <div>Coverage: <span id="valCoverage" class="font-semibold text-zinc-100">0%</span></div>
+                    </div>
+                </div>
+
+                <button id="btnValidate" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                    Submit to Planning Agent <span class="text-lg leading-none">→</span>
+                </button>
+            </div>
+
+            <div class="lg:col-span-4 flex flex-col gap-4 overflow-y-auto pr-2 h-full">
+
+                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0">
+                    <h3 class="text-sm font-semibold mb-3">Zoning & Setbacks</h3>
+                    <select id="regionSelect" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 text-sm rounded-lg px-3 py-2 outline-none mb-4 cursor-pointer text-zinc-200">
+                        <option value="seattle">Seattle, WA</option>
+                        <option value="bellevue">Bellevue, WA</option>
+                        <option value="redmond">Redmond, WA</option>
+                        <option value="bothell">Bothell, WA</option>
+                    </select>
+                    <div class="grid grid-cols-2 gap-2" id="setbackWidgets"></div>
+                </div>
+
+                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0">
+                    <h3 class="text-sm font-semibold mb-3">Tree Protection Zone</h3>
+                    <div class="flex gap-2">
+                        <div class="flex-1">
+                            <label class="block text-[10px] text-zinc-400 mb-1">Center X (ft)</label>
+                            <input type="number" id="treeX" value="75" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 rounded-lg px-2 py-1.5 text-xs outline-none">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-[10px] text-zinc-400 mb-1">Center Y (ft)</label>
+                            <input type="number" id="treeY" value="88" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 rounded-lg px-2 py-1.5 text-xs outline-none">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-[10px] text-zinc-400 mb-1">Radius (ft)</label>
+                            <input type="number" id="treeRadius" value="12" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 rounded-lg px-2 py-1.5 text-xs outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0">
+                    <h3 class="text-sm font-semibold mb-3">Manual Coordinates (JSON)</h3>
+                    <textarea id="jsonCoords" rows="2" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 rounded-lg p-2 text-[11px] font-mono outline-none"></textarea>
+                    <div class="flex justify-between items-center text-[10px] text-zinc-500 mt-2">
+                        <span>Double-click edge to split.</span>
+                        <button id="btnClearAll" class="px-2 py-1 border border-[#2e2e33] hover:bg-[#26262b] rounded-md transition-colors text-zinc-300">Clear All</button>
+                    </div>
+                </div>
+
+                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 flex flex-col min-h-[220px] flex-1">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-sm font-semibold">Vertex Coordinates</h3>
+                        <button id="btnAddVertex" class="px-2 py-1 bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 border border-indigo-600/50 rounded text-xs transition-colors">+ Add Vertex</button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto border border-[#2e2e33] rounded-lg bg-[#18181b]">
+                        <table class="w-full text-xs text-left">
+                            <thead class="sticky top-0 bg-[#26262b] text-zinc-400 shadow-sm">
+                                <tr>
+                                    <th class="px-3 py-2 font-medium">Vertex</th>
+                                    <th class="px-3 py-2 font-medium">X (ft)</th>
+                                    <th class="px-3 py-2 font-medium">Y (ft)</th>
+                                    <th class="px-3 py-2 font-medium text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vertexTableBody" class="divide-y divide-[#2e2e33]"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <div id="dummyPopup" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center">
+        <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-2xl p-6 w-[400px] shadow-2xl flex flex-col items-center text-center transform scale-95 opacity-0 transition-all duration-300" id="popupContent">
+            <div class="w-12 h-12 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center mb-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Boundary Submitted</h3>
+            <p class="text-sm text-zinc-400 mb-6">Your plot coordinates and constraint parameters have been sent to the Planning Agent pipeline for processing.</p>
+            <button id="btnClosePopup" class="w-full py-2.5 bg-[#2e2e33] hover:bg-[#3f3f46] text-white rounded-lg transition-colors font-medium border border-[#3f3f46]">Continue Working</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
