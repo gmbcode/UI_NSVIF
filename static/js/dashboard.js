@@ -203,31 +203,31 @@ class PlotEditor {
         const ty_val = parseFloat(document.getElementById('treeY').value) || 0;
         const tr_val = parseFloat(document.getElementById('treeRadius').value) || 0;
 
-        if (shrunk && shrunk.length >= 3) {
-            ctx.save();
-            ctx.beginPath();
-            shrunk.forEach((p, i) => i === 0 ? ctx.moveTo(this.tx(p[0]), this.ty(p[1])) : ctx.lineTo(this.tx(p[0]), this.ty(p[1])));
-            ctx.closePath();
-            ctx.fillStyle = 'rgba(34, 197, 94, 0.12)';
-            ctx.fill();
-
-            if (tr_val > 0) {
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.beginPath();
-                ctx.arc(this.tx(tx_val), this.ty(ty_val), tr_val * this.scale, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.restore();
-
-            ctx.beginPath();
-            shrunk.forEach((p, i) => i === 0 ? ctx.moveTo(this.tx(p[0]), this.ty(p[1])) : ctx.lineTo(this.tx(p[0]), this.ty(p[1])));
-            ctx.closePath();
-            ctx.strokeStyle = 'rgba(34, 197, 94, 0.8)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 4]);
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
+        // if (shrunk && shrunk.length >= 3) {
+        //     ctx.save();
+        //     ctx.beginPath();
+        //     shrunk.forEach((p, i) => i === 0 ? ctx.moveTo(this.tx(p[0]), this.ty(p[1])) : ctx.lineTo(this.tx(p[0]), this.ty(p[1])));
+        //     ctx.closePath();
+        //     ctx.fillStyle = 'rgba(34, 197, 94, 0.12)';
+        //     ctx.fill();
+        //
+        //     if (tr_val > 0) {
+        //         ctx.globalCompositeOperation = 'destination-out';
+        //         ctx.beginPath();
+        //         ctx.arc(this.tx(tx_val), this.ty(ty_val), tr_val * this.scale, 0, Math.PI * 2);
+        //         ctx.fill();
+        //     }
+        //     ctx.restore();
+        //
+        //     ctx.beginPath();
+        //     shrunk.forEach((p, i) => i === 0 ? ctx.moveTo(this.tx(p[0]), this.ty(p[1])) : ctx.lineTo(this.tx(p[0]), this.ty(p[1])));
+        //     ctx.closePath();
+        //     ctx.strokeStyle = 'rgba(34, 197, 94, 0.8)';
+        //     ctx.lineWidth = 2;
+        //     ctx.setLineDash([6, 4]);
+        //     ctx.stroke();
+        //     ctx.setLineDash([]);
+        // }
 
         // Main Boundary
         ctx.beginPath();
