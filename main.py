@@ -27,9 +27,20 @@ from dotenv import load_dotenv
 
 from auth import auth_bp, get_logto_client
 import matplotlib
+from matplotlib import font_manager
 matplotlib.use('Agg')
 from matplotlib.figure import Figure
+font_path = os.path.join(os.path.dirname(__file__), 'static', 'Arial.ttf')
 
+if os.path.exists(font_path):
+    # Register the font with Matplotlib
+    font_manager.fontManager.addfont(font_path)
+    prop = font_manager.FontProperties(fname=font_path)
+    
+    # Force Matplotlib (and by extension, ezdxf) to use this font globally
+    plt.rcParams['font.family'] = prop.get_name()
+else:
+    print(f"Warning: Font not found at {font_path}. DXF text might render incorrectly.")
 from ezdxf.addons.drawing import (
     RenderContext,
     Frontend
