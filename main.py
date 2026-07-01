@@ -4,6 +4,40 @@ from flask import Flask, render_template, redirect, url_for, jsonify, request
 from dotenv import load_dotenv
 from auth import auth_bp, get_logto_client
 
+import os
+import requests
+
+import base64
+import tempfile
+import io
+
+import ezdxf
+
+from flask import (
+    Flask,
+    render_template,
+    redirect,
+    url_for,
+    jsonify,
+    request,
+    send_file
+)
+
+from dotenv import load_dotenv
+
+from auth import auth_bp, get_logto_client
+
+from matplotlib.figure import Figure
+
+from ezdxf.addons.drawing import (
+    RenderContext,
+    Frontend
+)
+
+from ezdxf.addons.drawing.matplotlib import (
+    MatplotlibBackend
+)
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -130,6 +164,87 @@ def mock_planning_chat():
         reply = "Understood. I am adding this constraint to the brief. Review the updated parameters when you're ready."
 
     return jsonify({"reply": reply})
+@app.route('/multifloor')
+async def multifloor():
+
+    client = get_logto_client()
+
+    if not client.isAuthenticated():
+        return redirect(url_for('home'))
+
+    return render_template('multifloor.html')
+
+@app.route('/api/multifloor-image', methods=['POST'])
+def multifloor_image():
+
+    response = requests.post(
+        "http://16.176.176.187:8001/api/v1/generate-multifloor",
+        json={"session_id": "sim_session_001"}
+    )
+
+    data = response.json()
+
+    dxf_bytes = base64.b64decode(
+        data["dxf"]["content_base64"]
+    )
+
+    with tempfile.NamedTemporaryFile(
+        suffix=".dxf",
+        delete=False
+    ) as tmp:
+
+        tmp.write(dxf_bytes)
+        dxf_path = tmp.name
+
+    doc = ezdxf.readfile(dxf_path)
+
+    fig = Figure(figsize=(10, 10))
+    ax = fig.add_axes([0, 0, 1, 1])
+
+    context = RenderContext(doc)
+    backend = MatplotlibBackend(ax)
+
+    Frontend(context, backend).draw_layout(
+        doc.modelspace()
+    )
+
+    png = io.BytesIO()
+
+    fig.savefig(
+        png,
+        format="png",
+        bbox_inches="tight"
+    )
+
+    png.seek(0)
+
+    return send_file(
+        png,
+        mimetype="image/png"
+    )
+
+@app.route('/api/multifloor-dxf', methods=['POST'])
+def multifloor_dxf():
+
+    response = requests.post(
+        "http://16.176.176.187:8001/api/v1/generate-multifloor",
+        json={"session_id": "sim_session_001"}
+    )
+
+    data = response.json()
+
+    dxf_bytes = base64.b64decode(
+        data["dxf"]["content_base64"]
+    )
+
+    dxf_file = io.BytesIO(dxf_bytes)
+
+    return send_file(
+        dxf_file,
+        mimetype="application/dxf",
+        as_attachment=True,
+        download_name="multifloor.dxf"
+    )
 
 
 if __name__ == '__main__':

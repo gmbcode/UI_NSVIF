@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlotMySpace - Multifloor Generator</title>
+
+```
+<link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script>
+    if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+    } else {
+        document.documentElement.classList.remove('light');
+        document.documentElement.classList.add('dark');
+    }
+</script>
+
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+</style>
+```
+
+</head>
+
+<body class="bg-[#0e0e10] text-[#f0f0f2] h-screen flex flex-col overflow-hidden">
+
+```
+<nav class="h-16 shrink-0 border-b border-[#2e2e33] bg-[#0e0e10] flex items-center justify-between px-6">
+    <div class="flex items-center gap-8">
+
+        <div
+            class="flex items-center gap-2 text-indigo-500 font-bold text-lg cursor-pointer"
+            onclick="window.location.href='/dashboard'"
+        >
+            <span>⌂</span>
+            <span>PlotMySpace</span>
+        </div>
+
+        <ul class="flex items-center gap-2">
+            <li
+                class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100"
+                onclick="window.location.href='/dashboard'"
+            >
+                <span>⛶</span>
+                Studio Workspace
+            </li>
+
+            <li
+                class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium text-sm"
+            >
+                <span>🏢</span>
+                Multifloor Generator
+            </li>
+        </ul>
+
+    </div>
+
+    <a
+        href="{{ url_for('auth.sign_out') }}"
+        class="p-2 rounded-md text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+    >
+        Sign Out
+    </a>
+</nav>
+
+<main class="flex-1 overflow-hidden p-6">
+
+    <div class="h-full bg-[#1c1c1f] border border-[#2e2e33] rounded-xl flex flex-col overflow-hidden">
+
+        <div class="p-6 border-b border-[#2e2e33] bg-[#18181b]">
+
+            <h1 class="text-xl font-semibold">
+                Multifloor Layout Generator
+            </h1>
+
+            <p class="text-sm text-zinc-400 mt-1">
+                Generate AI-created multi-floor building layouts and preview the rendered floor plan.
+            </p>
+
+        </div>
+
+        <div class="px-6 py-4 border-b border-[#2e2e33] flex items-center gap-3">
+
+            <span
+                id="statusDot"
+                class="w-2.5 h-2.5 rounded-full bg-green-500"
+            ></span>
+
+            <span
+                id="status"
+                class="text-sm text-zinc-300"
+            >
+                Ready
+            </span>
+
+        </div>
+
+        <div class="flex-1 p-6 overflow-auto bg-[#18181b]">
+
+            <div
+                class="h-full min-h-[500px]
+                       border border-[#2e2e33]
+                       rounded-xl
+                       bg-[#0e0e10]
+                       flex items-center justify-center"
+            >
+
+                <img
+                    id="viewer"
+                    class="max-w-full max-h-full object-contain"
+                />
+
+            </div>
+
+        </div>
+
+        <div class="p-4 border-t border-[#2e2e33] bg-[#18181b] flex justify-end gap-3">
+
+            <button
+                id="downloadBtn"
+                class="px-4 py-2 bg-[#0e0e10]
+                       border border-[#2e2e33]
+                       hover:bg-[#26262b]
+                       rounded-lg
+                       text-sm"
+            >
+                Download DXF
+            </button>
+
+            <button
+                id="generateBtn"
+                class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors"
+            >
+                Generate Layout
+            </button>
+
+        </div>
+
+    </div>
+
+</main>
+
+<script src="{{ url_for('static', filename='js/multifloor.js') }}"></script>
+```
+
+</body>
+</html>
+
