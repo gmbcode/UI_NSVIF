@@ -1,51 +1,32 @@
 # main.py
 import os
-from flask import Flask, render_template, redirect, url_for, jsonify, request
+
+# 1. FIX EZDXF CACHE: Redirect ezdxf's cache to Vercel's writable /tmp directory
+# MUST be set before importing ezdxf!
+os.environ["EZDXF_CACHE_DIR"] = "/tmp"
+
+from flask import Flask, render_template, redirect, url_for, jsonify, request, send_file
 from dotenv import load_dotenv
-from auth import auth_bp, get_logto_client
-
-import os
 import requests
-
 import base64
 import tempfile
 import io
 
-import ezdxf
-
-from flask import (
-    Flask,
-    render_template,
-    redirect,
-    url_for,
-    jsonify,
-    request,
-    send_file
-)
-
-from dotenv import load_dotenv
+import ezdxf 
 
 from auth import auth_bp, get_logto_client
-import matplotlib
-from matplotlib import font_manager
-matplotlib.use('Agg')
-from matplotlib.figure import Figure
-font_path = os.path.join(os.path.dirname(__file__), 'static', 'Arial.ttf')
 
-if os.path.exists(font_path):
-    # Register the font with Matplotlib
-    font_manager.fontManager.addfont(font_path)
-    prop = font_manager.FontProperties(fname=font_path)
-    
-    # Force Matplotlib (and by extension, ezdxf) to use this font globally
-    plt.rcParams['font.family'] = prop.get_name()
-else:
-    print(f"Warning: Font not found at {font_path}. DXF text might render incorrectly.")
+# 2. FIX MATPLOTLIB IMPORTS
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib import font_manager  # Required for the font fix
+
 from ezdxf.addons.drawing import (
     RenderContext,
     Frontend
 )
-
 from ezdxf.addons.drawing.matplotlib import (
     MatplotlibBackend
 )
@@ -55,6 +36,22 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret")
 app.register_blueprint(auth_bp, url_prefix="/auth")
+
+# 3. APPLY FONT FIX
+# Make sure you have a .ttf file in your static folder!
+font_path = os.path.join(os.path.dirname(__file__), 'static', 'OpenSans-Regular.ttf')
+
+if os.path.exists(font_path):
+    # Register the font with Matplotlib
+    font_manager.fontManager.addfont(font_path)
+    prop = font_manager.FontProperties(fname=font_path)
+    
+    # Force Matplotlib to use this font globally
+    plt.rcParams['font.family'] = prop.get_name()
+else:
+    print(f"Warning: Font not found at {font_path}. DXF text might render incorrectly.")
+
+
 
 
 @app.route('/')
