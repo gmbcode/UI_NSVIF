@@ -48,6 +48,32 @@ async def dashboard():
     return render_template('dashboard.html', user=user_data)
 
 
+@app.route('/iteration')
+async def iteration():
+    client = get_logto_client()
+    if not client.isAuthenticated():
+        return redirect(url_for('home'))
+
+    user_data = {"name": "Architect", "email": "No email provided"}
+    try:
+        user_info = await client.fetchUserInfo()
+        if hasattr(user_info, 'model_dump'):
+            info_dict = user_info.model_dump()
+        elif hasattr(user_info, 'dict'):
+            info_dict = user_info.dict()
+        elif hasattr(user_info, '__dict__'):
+            info_dict = vars(user_info)
+        else:
+            info_dict = user_info if isinstance(user_info, dict) else {}
+
+        user_data["name"] = info_dict.get('name') or info_dict.get('username') or 'Architect'
+        user_data["email"] = info_dict.get('email', 'No email provided')
+    except Exception as e:
+        print(f"Failed to fetch user info: {e}")
+
+    return render_template('iteration.html', user=user_data)
+
+
 # ═══════════════════════════════════════════════════════════
 # MOCK APIs / AGENT ENDPOINTS
 # ═══════════════════════════════════════════════════════════

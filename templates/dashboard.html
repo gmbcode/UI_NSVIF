@@ -6,14 +6,227 @@
     <title>PlotMySpace Dashboard</title>
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Check theme preference before rendering to avoid screen flashing
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+        } else {
+            document.documentElement.classList.remove('light');
+            document.documentElement.classList.add('dark');
+        }
+    </script>
     <style>
+        :root {
+            --bg-page: #0e0e10;
+            --bg-panel: #1c1c1f;
+            --bg-inner: #18181b;
+            --bg-hover: #26262b;
+            --text-primary: #f0f0f2;
+            --text-secondary: #a1a1aa;
+            --border-color: #2e2e33;
+            --input-bg: #0e0e10;
+            --vertex-header: #26262b;
+        }
+        
+        html.light {
+            --bg-page: #FFFFFF;
+            --bg-panel: #F9FAFB;
+            --bg-inner: #FFFFFF;
+            --bg-hover: #E5E7EB;
+            --text-heading: #111827;
+            --text-primary: #374151;
+            --text-secondary: #6B7280;
+            --border-color: #E5E7EB;
+            --input-bg: #FFFFFF;
+            --vertex-header: #F9FAFB;
+            --primary-purple: #5B3DF5;
+            --hover-purple: #4C2FE3;
+        }
+
         body { font-family: 'Inter', sans-serif; }
+        
+        /* Apply variables to override hardcoded dark classes when .light class is present on html */
+        html.light body { background-color: var(--bg-page) !important; color: var(--text-primary) !important; }
+        html.light h1, html.light h2, html.light h3, html.light h4, html.light .font-bold, html.light .font-semibold {
+            color: var(--text-heading) !important;
+        }
+        html.light nav { background-color: var(--bg-page) !important; border-color: var(--border-color) !important; }
+        html.light nav .text-zinc-200 { color: var(--text-heading) !important; }
+        html.light nav .text-zinc-400 { color: var(--text-secondary) !important; }
+        html.light nav .text-zinc-500 { color: var(--text-secondary) !important; }
+        html.light .bg-\[\#1c1c1f\] { background-color: var(--bg-panel) !important; border-color: var(--border-color) !important; }
+        html.light .bg-\[\#18181b\] { background-color: var(--bg-inner) !important; border-color: var(--border-color) !important; }
+        html.light .bg-\[\#2e2e33\] { background-color: var(--bg-inner) !important; color: var(--text-primary) !important; }
+        html.light .border-\[\#2e2e33\] { border-color: var(--border-color) !important; }
+        html.light .divide-\[\#2e2e33\] > * { border-color: var(--border-color) !important; }
+        html.light .text-zinc-100 { color: var(--text-primary) !important; }
+        html.light .text-zinc-200 { color: var(--text-primary) !important; }
+        html.light .text-zinc-300 { color: var(--text-primary) !important; }
+        html.light .text-zinc-400 { color: var(--text-secondary) !important; }
+        html.light .text-zinc-500 { color: var(--text-secondary) !important; }
+        html.light .bg-\[\#0e0e10\] { background-color: var(--input-bg) !important; border-color: var(--border-color) !important; }
+        html.light .bg-\[\#26262b\] { background-color: var(--vertex-header) !important; }
+        
+        /* Purple theme color overrides */
+        html.light .bg-indigo-600 { background-color: var(--primary-purple) !important; }
+        html.light .hover\:bg-indigo-500:hover { background-color: var(--hover-purple) !important; }
+        html.light .text-indigo-500 { color: var(--primary-purple) !important; }
+        html.light .text-indigo-400 { color: var(--primary-purple) !important; }
+        html.light .focus\:border-indigo-500:focus { border-color: var(--primary-purple) !important; }
+        html.light .border-indigo-600\/50 { border-color: rgba(91, 61, 245, 0.5) !important; }
+        html.light .accent-indigo-500 { accent-color: var(--primary-purple) !important; }
+        html.light .bg-indigo-600\/20 { background-color: rgba(91, 61, 245, 0.2) !important; }
+        html.light .hover\:bg-indigo-600\/30:hover { background-color: rgba(91, 61, 245, 0.3) !important; }
+        
+        html.light input, html.light select, html.light textarea { 
+            background-color: var(--input-bg) !important; 
+            border-color: var(--border-color) !important; 
+            color: var(--text-primary) !important; 
+        }
+        html.light input::placeholder, html.light select::placeholder, html.light textarea::placeholder {
+            color: var(--text-secondary) !important;
+        }
+        
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0e0e10; }
-        ::-webkit-scrollbar-thumb { background: #2e2e33; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+        ::-webkit-scrollbar-track { background: var(--bg-page); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
         .modal-active { display: flex !important; }
         .modal-enter { opacity: 1 !important; transform: scale(1) !important; }
+
+        /* Uiverse.io theme switch styles by rishichawda */
+        #theme-toggle-button {
+          font-size: 11px;
+          position: relative;
+          display: flex;
+          align-items: center;
+          width: 7em;
+          cursor: pointer;
+        }
+
+        /* Hide default HTML checkbox */
+        #toggle {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+
+        #container,
+        #patches,
+        #stars,
+        #button,
+        #sun,
+        #moon,
+        #cloud {
+          transition-property: all;
+          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+          transition-duration: 0.25s;
+        }
+
+        /* night sky background */
+        #toggle:checked + svg #container {
+          fill: #2b4360;
+        }
+
+        /* move button to right when checked */
+        #toggle:checked + svg #button {
+          transform: translate(28px, 2.333px);
+        }
+
+        /* show/hide sun and moon based on checkbox state */
+        #sun {
+          opacity: 1;
+        }
+
+        #toggle:checked + svg #sun {
+          opacity: 0;
+        }
+
+        #moon {
+          opacity: 0;
+        }
+
+        #toggle:checked + svg #moon {
+          opacity: 1;
+        }
+
+        /* show or hide background items on checkbox state */
+        #cloud {
+          opacity: 1;
+        }
+
+        #toggle:checked + svg #cloud {
+          opacity: 0;
+        }
+
+        #stars {
+          opacity: 0;
+        }
+
+        #toggle:checked + svg #stars {
+          opacity: 1;
+        }
+
+        /* Uiverse.io button style by satyamchaudharydev */
+        .uiverse-btn {
+          margin: 0;
+          height: auto;
+          background: transparent;
+          padding: 0;
+          border: none;
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+        }
+
+        .uiverse-btn {
+          --border-right: 6px;
+          --text-stroke-color: rgba(255, 255, 255, 0.4);
+          --animation-color: #37FF8B;
+          --fs-size: 1.3rem;
+          letter-spacing: 3px;
+          text-decoration: none;
+          font-size: var(--fs-size);
+          font-family: "Inter", sans-serif;
+          position: relative;
+          text-transform: uppercase;
+          color: transparent;
+          -webkit-text-stroke: 1px var(--text-stroke-color);
+        }
+
+        /* Light theme overrides */
+        html.light .uiverse-btn {
+          --text-stroke-color: rgba(17, 24, 39, 0.3);
+          --animation-color: #5B3DF5;
+        }
+
+        .uiverse-btn .actual-text {
+          padding: 10px 0;
+        }
+
+        .hover-text {
+          position: absolute;
+          box-sizing: border-box;
+          content: attr(data-text);
+          color: var(--animation-color);
+          width: 0%;
+          inset: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          border-right: var(--border-right) solid var(--animation-color);
+          overflow: hidden;
+          transition: 0.5s;
+          -webkit-text-stroke: 1px var(--animation-color);
+        }
+
+        .uiverse-btn:hover .hover-text {
+          width: 100%;
+          filter: drop-shadow(0 0 23px var(--animation-color));
+        }
     </style>
 </head>
 <body class="bg-[#0e0e10] text-[#f0f0f2] h-screen flex flex-col overflow-hidden">
@@ -36,6 +249,49 @@
 
         <div class="flex items-center gap-4">
             <div class="flex items-center gap-3 border-r border-[#2e2e33] pr-4">
+                <!-- Theme Toggle Switch (Uiverse.io by rishichawda) -->
+                <label id="theme-toggle-button" class="mr-3" title="Toggle Light/Dark Mode">
+                    <input type="checkbox" id="toggle">
+                    <svg viewBox="0 0 69 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-[7em]">
+                        <!-- Background sky -->
+                        <rect id="container" width="69" height="28" rx="14" fill="#B3C7D6"/>
+                        
+                        <!-- Stars (visible in dark mode) -->
+                        <g id="stars" opacity="0">
+                            <circle cx="20" cy="8" r="0.7" fill="white" />
+                            <circle cx="15" cy="18" r="0.5" fill="white" />
+                            <circle cx="25" cy="20" r="0.6" fill="white" />
+                            <circle cx="35" cy="10" r="0.8" fill="white" opacity="0.8" />
+                        </g>
+                        
+                        <!-- Clouds (visible in day mode) -->
+                        <g id="cloud" opacity="1">
+                            <path d="M50 20a3.5 3.5 0 0 1 3.5-3.5 3.5 3.5 0 0 1 3.2 2.1 3 3 0 0 1 .8-.1 3 3 0 0 1 3 3 3 3 0 0 1-3 3H50a3.5 3.5 0 0 1 0-7" fill="white" opacity="0.9" />
+                        </g>
+                        
+                        <!-- Sliding button group -->
+                        <g id="button">
+                            <!-- Knob base -->
+                            <circle cx="14" cy="14" r="10" fill="#FFE555" />
+                            
+                            <!-- Sun Details -->
+                            <g id="sun" opacity="1">
+                                <circle cx="14" cy="14" r="11.5" stroke="#FFE555" stroke-width="1.5" stroke-dasharray="3 2" />
+                            </g>
+                            
+                            <!-- Moon & Craters -->
+                            <g id="moon" opacity="0">
+                                <circle cx="14" cy="14" r="10" fill="#D2D6DC" />
+                                <g id="patches">
+                                    <circle cx="10" cy="11" r="1.5" fill="#9BA3AF" />
+                                    <circle cx="15" cy="17" r="1" fill="#9BA3AF" />
+                                    <circle cx="17" cy="11" r="1.8" fill="#9BA3AF" />
+                                </g>
+                            </g>
+                        </g>
+                    </svg>
+                </label>
+
                 <div class="text-right">
                     <div class="text-sm font-medium text-zinc-200">{{ user.name }}</div>
                     <div class="text-[11px] text-zinc-500">{{ user.email }}</div>
@@ -44,9 +300,6 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                 </a>
             </div>
-            <button class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors">
-                ▶ Run Pipeline
-            </button>
         </div>
     </nav>
 
@@ -110,8 +363,9 @@
                     </div>
                 </div>
 
-                <button id="btnValidate" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-                    Submit to Planning Agent <span class="text-lg leading-none">→</span>
+                <button id="btnValidate" class="uiverse-btn" data-text="Submit to Agent">
+                    <span class="actual-text">&nbsp;Submit to Agent&nbsp;</span>
+                    <span class="hover-text" aria-hidden="true">&nbsp;Submit to Agent&nbsp;</span>
                 </button>
             </div>
 
@@ -128,21 +382,13 @@
                     <div class="grid grid-cols-2 gap-2" id="setbackWidgets"></div>
                 </div>
 
-                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0">
-                    <h3 class="text-sm font-semibold mb-3">Tree Protection Zone</h3>
-                    <div class="flex gap-2">
-                        <div class="flex-1">
-                            <label class="block text-[10px] text-zinc-400 mb-1">Center X (ft)</label>
-                            <input type="number" id="treeX" value="75" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 rounded-lg px-2 py-1.5 text-xs outline-none">
-                        </div>
-                        <div class="flex-1">
-                            <label class="block text-[10px] text-zinc-400 mb-1">Center Y (ft)</label>
-                            <input type="number" id="treeY" value="88" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 rounded-lg px-2 py-1.5 text-xs outline-none">
-                        </div>
-                        <div class="flex-1">
-                            <label class="block text-[10px] text-zinc-400 mb-1">Radius (ft)</label>
-                            <input type="number" id="treeRadius" value="12" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 rounded-lg px-2 py-1.5 text-xs outline-none">
-                        </div>
+                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0 flex flex-col">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-sm font-semibold">Tree Protection Zones</h3>
+                        <button id="btnAddTree" type="button" class="px-2 py-1 bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 border border-indigo-600/50 rounded text-xs transition-colors">+ Add Tree</button>
+                    </div>
+                    <div id="treeListContainer" class="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                        <!-- Dynamic Tree Items will be inserted here -->
                     </div>
                 </div>
 
@@ -150,7 +396,10 @@
                     <h3 class="text-sm font-semibold mb-3">Manual Coordinates (JSON)</h3>
                     <textarea id="jsonCoords" rows="2" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 rounded-lg p-2 text-[11px] font-mono outline-none"></textarea>
                     <div class="flex justify-between items-center text-[10px] text-zinc-500 mt-2">
-                        <span>Double-click edge to split.</span>
+                        <label class="px-2 py-1 border border-[#2e2e33] hover:bg-[#26262b] rounded-md transition-colors text-zinc-300 cursor-pointer flex items-center gap-1">
+                            <span>📤 Import DXF</span>
+                            <input type="file" id="dxfFileInput" accept=".dxf" class="hidden">
+                        </label>
                         <button id="btnClearAll" class="px-2 py-1 border border-[#2e2e33] hover:bg-[#26262b] rounded-md transition-colors text-zinc-300">Clear All</button>
                     </div>
                 </div>

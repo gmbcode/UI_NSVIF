@@ -66,7 +66,126 @@ function isPointInPolygon(point, vs) {
     return inside;
 }
 
-function getBuildableArea(shrunk, tx, ty, tr) {
+function parseDXF(text) {
+    const lines = text.split(/\r?\n/).map(line => line.trim());
+    let vertices = [];
+    let currentX = null;
+    let currentY = null;
+    let isEntities = false;
+    let isLwpolyline = false;
+    let polylinePoints = [];
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        if (line === "ENTITIES") {
+            isEntities = true;
+            continue;
+        }
+        if (line === "ENDSEC" && isEntities) {
+            isEntities = false;
+            break;
+        }
+        
+        if (!isEntities) continue;
+
+        if (line === "LWPOLYLINE") {
+            if (polylinePoints.length >= 3) {
+                vertices = polylinePoints;
+            }
+            polylinePoints = [];
+            isLwpolyline = true;
+            continue;
+        }
+
+        if (line === "0" && isLwpolyline) {
+            if (polylinePoints.length >= 3) {
+                vertices = polylinePoints;
+            }
+            isLwpolyline = false;
+        }
+
+        if (isLwpolyline) {
+            if (line === "10" && i + 1 < lines.length) {
+                currentX = parseFloat(lines[i + 1]);
+            }
+            if (line === "20" && i + 1 < lines.length) {
+                currentY = parseFloat(lines[i + 1]);
+                if (currentX !== null && !isNaN(currentX) && !isNaN(currentY)) {
+                    polylinePoints.push([currentX, currentY]);
+                    currentX = null;
+                    currentY = null;
+                }
+            }
+        }
+    }
+
+    if (polylinePoints.length >= 3) {
+        vertices = polylinePoints;
+    }
+
+    if (vertices.length === 0) {
+        let allX = [];
+        let allY = [];
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i] === "10" && i + 1 < lines.length) {
+                const val = parseFloat(lines[i + 1]);
+                if (!isNaN(val)) allX.push(val);
+            }
+            if (lines[i] === "20" && i + 1 < lines.length) {
+                const val = parseFloat(lines[i + 1]);
+                if (!isNaN(val)) allY.push(val);
+            }
+        }
+        const count = Math.min(allX.length, allY.length);
+        const unique = [];
+        for (let i = 0; i < count; i++) {
+            const pt = [allX[i], allY[i]];
+            if (unique.length === 0 || Math.abs(unique[unique.length - 1][0] - pt[0]) > 0.001 || Math.abs(unique[unique.length - 1][1] - pt[1]) > 0.001) {
+                unique.push(pt);
+            }
+        }
+        if (unique.length >= 3) {
+            vertices = unique;
+        }
+    }
+
+    return vertices;
+}
+
+function normalizeVertices(vertices) {
+    if (vertices.length === 0) return [];
+    
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    vertices.forEach(v => {
+        if (v[0] < minX) minX = v[0];
+        if (v[0] > maxX) maxX = v[0];
+        if (v[1] < minY) minY = v[1];
+        if (v[1] > maxY) maxY = v[1];
+    });
+    
+    const dx = maxX - minX;
+    const dy = maxY - minY;
+    const maxSpan = Math.max(dx, dy);
+    
+    if (maxSpan === 0) {
+        return vertices.map(() => [50, 50]);
+    }
+    
+    const scale = 70 / maxSpan;
+    const centerShiftX = 50 - (minX + dx / 2) * scale;
+    const centerShiftY = 50 - (minY + dy / 2) * scale;
+    
+    return vertices.map(v => {
+        return [
+            Math.round((v[0] * scale + centerShiftX) * 10) / 10,
+            Math.round((v[1] * scale + centerShiftY) * 10) / 10
+        ];
+    });
+}
+
+function getBuildableArea(shrunk, trees) {
     if (!shrunk || shrunk.length < 3) return 0;
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     shrunk.forEach(p => {
@@ -87,7 +206,15 @@ function getBuildableArea(shrunk, tx, ty, tr) {
         for (let j = 0; j < steps; j++) {
             const y = minY + (j + 0.5) * dy;
             if (isPointInPolygon([x, y], shrunk)) {
-                if (((x - tx) ** 2 + (y - ty) ** 2) >= tr * tr) count++;
+                let inAnyTree = false;
+                for (let k = 0; k < trees.length; k++) {
+                    const t = trees[k];
+                    if (t.r > 0 && ((x - t.x) ** 2 + (y - t.y) ** 2) < t.r * t.r) {
+                        inAnyTree = true;
+                        break;
+                    }
+                }
+                if (!inAnyTree) count++;
             }
         }
     }
@@ -103,6 +230,7 @@ class PlotEditor {
         this.vertices = [[15, 15], [92, 10], [86, 69], [16, 81]];
         this.setback_h = 8;
         this.setback_v = 25;
+        this.trees = [{ x: 75, y: 88, r: 12 }];
 
         this.draggedIndex = -1;
         this.hoveredIndex = -1;
@@ -184,50 +312,45 @@ class PlotEditor {
         const ctx = this.ctx;
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+        const isLight = document.documentElement.classList.contains('light');
+        const gridColor = isLight ? '#e5e7eb' : '#2d2d35';
+        const gridTextColor = isLight ? '#6b7280' : '#5a5a63';
+        const labelTextColor = isLight ? '#4b5563' : '#9b9ba4';
+        const hoverTextColor = isLight ? '#111827' : '#ffffff';
+
         // Grid
-        ctx.strokeStyle = '#2d2d35';
+        ctx.strokeStyle = gridColor;
         ctx.lineWidth = 1;
         for (let i = 0; i <= 100; i += 10) {
             ctx.beginPath(); ctx.moveTo(this.tx(i), this.ty(0)); ctx.lineTo(this.tx(i), this.ty(100)); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(this.tx(0), this.ty(i)); ctx.lineTo(this.tx(100), this.ty(i)); ctx.stroke();
 
-            ctx.fillStyle = '#5a5a63';
+            ctx.fillStyle = gridTextColor;
             ctx.font = '9px monospace';
+            
+            // X-axis labels
             ctx.textAlign = 'center';
             if(i > 0 && i < 100) ctx.fillText(i + "'", this.tx(i), this.ty(0) + 12);
+
+            // Y-axis labels
+            ctx.textAlign = 'right';
+            if(i > 0 && i < 100) ctx.fillText(i + "'", this.tx(0) - 8, this.ty(i) + 3);
         }
+
+        // Draw solid X and Y axis lines
+        ctx.strokeStyle = isLight ? '#9ca3af' : '#4b5563';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        // Y Axis (X = 0)
+        ctx.moveTo(this.tx(0), this.ty(0));
+        ctx.lineTo(this.tx(0), this.ty(100));
+        // X Axis (Y = 0)
+        ctx.moveTo(this.tx(0), this.ty(0));
+        ctx.lineTo(this.tx(100), this.ty(0));
+        ctx.stroke();
 
         // Buildable Area (Setback Polygon)
         const shrunk = computeSetbackPolygon(this.vertices, this.setback_h, this.setback_v);
-        const tx_val = parseFloat(document.getElementById('treeX').value) || 0;
-        const ty_val = parseFloat(document.getElementById('treeY').value) || 0;
-        const tr_val = parseFloat(document.getElementById('treeRadius').value) || 0;
-
-        // if (shrunk && shrunk.length >= 3) {
-        //     ctx.save();
-        //     ctx.beginPath();
-        //     shrunk.forEach((p, i) => i === 0 ? ctx.moveTo(this.tx(p[0]), this.ty(p[1])) : ctx.lineTo(this.tx(p[0]), this.ty(p[1])));
-        //     ctx.closePath();
-        //     ctx.fillStyle = 'rgba(34, 197, 94, 0.12)';
-        //     ctx.fill();
-        //
-        //     if (tr_val > 0) {
-        //         ctx.globalCompositeOperation = 'destination-out';
-        //         ctx.beginPath();
-        //         ctx.arc(this.tx(tx_val), this.ty(ty_val), tr_val * this.scale, 0, Math.PI * 2);
-        //         ctx.fill();
-        //     }
-        //     ctx.restore();
-        //
-        //     ctx.beginPath();
-        //     shrunk.forEach((p, i) => i === 0 ? ctx.moveTo(this.tx(p[0]), this.ty(p[1])) : ctx.lineTo(this.tx(p[0]), this.ty(p[1])));
-        //     ctx.closePath();
-        //     ctx.strokeStyle = 'rgba(34, 197, 94, 0.8)';
-        //     ctx.lineWidth = 2;
-        //     ctx.setLineDash([6, 4]);
-        //     ctx.stroke();
-        //     ctx.setLineDash([]);
-        // }
 
         // Main Boundary
         ctx.beginPath();
@@ -237,22 +360,26 @@ class PlotEditor {
         ctx.lineWidth = 3;
         ctx.stroke();
 
-        // Tree Protection Zone
-        if (tr_val > 0) {
-            ctx.beginPath();
-            ctx.arc(this.tx(tx_val), this.ty(ty_val), tr_val * this.scale, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(59, 130, 246, 0.1)';
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(59, 130, 246, 0.6)';
-            ctx.lineWidth = 1.5;
-            ctx.setLineDash([4, 4]);
-            ctx.stroke();
-            ctx.setLineDash([]);
+        // Tree Protection Zones
+        if (this.trees && this.trees.length > 0) {
+            this.trees.forEach((t, idx) => {
+                if (t.r > 0) {
+                    ctx.beginPath();
+                    ctx.arc(this.tx(t.x), this.ty(t.y), t.r * this.scale, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(59, 130, 246, 0.1)';
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(59, 130, 246, 0.6)';
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([4, 4]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
 
-            ctx.fillStyle = '#3b82f6';
-            ctx.font = '9px Inter, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('Tree zone', this.tx(tx_val), this.ty(ty_val) + 3);
+                    ctx.fillStyle = '#3b82f6';
+                    ctx.font = '9px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`Tree ${idx + 1}`, this.tx(t.x), this.ty(t.y) + 3);
+                }
+            });
         }
 
         // Vertices & Labels
@@ -266,13 +393,13 @@ class PlotEditor {
             ctx.lineWidth = isHovered ? 3 : 2;
             ctx.stroke();
 
-            ctx.fillStyle = '#9b9ba4';
+            ctx.fillStyle = labelTextColor;
             ctx.font = '10px Inter, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText(`V${i}`, this.tx(p[0]), this.ty(p[1]) - 10);
 
             if (isHovered) {
-                ctx.fillStyle = '#fff';
+                ctx.fillStyle = hoverTextColor;
                 ctx.fillText(`(${Math.round(p[0])}, ${Math.round(p[1])})`, this.tx(p[0]), this.ty(p[1]) - 22);
             }
         });
@@ -293,11 +420,7 @@ function updateMetrics() {
     const lotArea = getPolygonArea(pts);
     const shrunk = computeSetbackPolygon(pts, window.editor.setback_h, window.editor.setback_v);
 
-    const tx = parseFloat(document.getElementById('treeX').value) || 0;
-    const ty = parseFloat(document.getElementById('treeY').value) || 0;
-    const tr = parseFloat(document.getElementById('treeRadius').value) || 0;
-
-    const footprintArea = getBuildableArea(shrunk, tx, ty, tr);
+    const footprintArea = getBuildableArea(shrunk, window.editor.trees || []);
     const coverage = lotArea > 0 ? (footprintArea / lotArea) * 100 : 0;
 
     document.getElementById('valLotArea').innerText = Math.round(lotArea).toLocaleString();
@@ -345,6 +468,56 @@ function renderVerticesTable() {
     }
 }
 
+function renderTreesList() {
+    const container = document.getElementById('treeListContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const trees = window.editor.trees || [];
+    trees.forEach((t, i) => {
+        const item = document.createElement('div');
+        item.className = "flex gap-2 items-end border-b border-[#2e2e33]/50 pb-2 last:border-b-0";
+        item.innerHTML = `
+            <div class="flex-1">
+                <label class="block text-[9px] text-zinc-500 mb-0.5">X (ft)</label>
+                <input type="number" data-idx="${i}" data-field="x" class="tree-input w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 rounded px-2 py-1 text-xs outline-none text-zinc-200" value="${t.x}">
+            </div>
+            <div class="flex-1">
+                <label class="block text-[9px] text-zinc-500 mb-0.5">Y (ft)</label>
+                <input type="number" data-idx="${i}" data-field="y" class="tree-input w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 rounded px-2 py-1 text-xs outline-none text-zinc-200" value="${t.y}">
+            </div>
+            <div class="flex-1">
+                <label class="block text-[9px] text-zinc-500 mb-0.5">Radius (ft)</label>
+                <input type="number" data-idx="${i}" data-field="r" class="tree-input w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 rounded px-2 py-1 text-xs outline-none text-zinc-200" value="${t.r}">
+            </div>
+            <button data-idx="${i}" class="tree-delete text-red-400 hover:text-red-300 font-bold bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1 rounded transition-colors mb-0.5">✕</button>
+        `;
+        container.appendChild(item);
+    });
+
+    // Add listeners
+    document.querySelectorAll('.tree-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            const field = e.target.dataset.field;
+            const val = parseFloat(e.target.value) || 0;
+            window.editor.trees[idx][field] = val;
+            window.editor.draw();
+            updateMetrics();
+        });
+    });
+
+    document.querySelectorAll('.tree-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            window.editor.trees.splice(idx, 1);
+            window.editor.draw();
+            renderTreesList();
+            updateMetrics();
+        });
+    });
+}
+
 // Initializer
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -354,6 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.editor.onChangeCallback = syncEditorToUiControls;
 
     syncEditorToUiControls();
+    renderTreesList();
 
     // UI Tools Setup
     document.getElementById('btnShapeRect').addEventListener('click', () => {
@@ -383,12 +557,13 @@ document.addEventListener('DOMContentLoaded', () => {
         window.editor.snapToGrid = e.target.checked;
     });
 
-    // Link Tree Inputs to Canvas Redraw
-    ['treeX', 'treeY', 'treeRadius'].forEach(id => {
-        document.getElementById(id).addEventListener('input', () => {
-            window.editor.draw();
-            updateMetrics();
-        });
+    // Link Tree Add Button
+    document.getElementById('btnAddTree').addEventListener('click', () => {
+        if (!window.editor.trees) window.editor.trees = [];
+        window.editor.trees.push({ x: 50, y: 50, r: 10 });
+        window.editor.draw();
+        renderTreesList();
+        updateMetrics();
     });
 
     // 2. Initialize Setbacks Logic
@@ -462,18 +637,56 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {}
     });
 
-    // 4. Modal Submission Logic
-    const popup = document.getElementById('dummyPopup');
-    const popupContent = document.getElementById('popupContent');
-
+    // 4. Submission Logic
     document.getElementById('btnValidate').addEventListener('click', () => {
-        popup.classList.add('modal-active');
-        // Slight delay to trigger CSS transition
-        setTimeout(() => popupContent.classList.add('modal-enter'), 10);
+        window.location.href = '/iteration';
     });
 
-    document.getElementById('btnClosePopup').addEventListener('click', () => {
-        popupContent.classList.remove('modal-enter');
-        setTimeout(() => popup.classList.remove('modal-active'), 300);
-    });
+    // 5. DXF File Import Logic
+    const dxfInput = document.getElementById('dxfFileInput');
+    if (dxfInput) {
+        dxfInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const text = event.target.result;
+                const rawVertices = parseDXF(text);
+                if (rawVertices && rawVertices.length >= 3) {
+                    const normalized = normalizeVertices(rawVertices);
+                    window.editor.vertices = normalized;
+                    window.editor.draw();
+                    syncEditorToUiControls();
+                    alert(`Successfully imported DXF plot boundary with ${normalized.length} vertices!`);
+                } else {
+                    alert("Could not find a valid closed polyline (boundary) in the DXF file. Ensure it contains a closed LWPOLYLINE entity.");
+                }
+            };
+            reader.readAsText(file);
+        });
+    }
+
+    // 6. Light / Dark Mode Toggle Logic (Uiverse.io by rishichawda)
+    const toggleCheckbox = document.getElementById('toggle');
+
+    if (toggleCheckbox) {
+        // Sync checkbox state with current theme on load
+        toggleCheckbox.checked = !document.documentElement.classList.contains('light');
+
+        toggleCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.documentElement.classList.remove('light');
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+                localStorage.setItem('theme', 'light');
+            }
+            if (window.editor) {
+                window.editor.draw();
+            }
+        });
+    }
 });
