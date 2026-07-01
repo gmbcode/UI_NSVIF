@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlotMySpace Dashboard</title>
+    <title>PlotMySpace - Main Dashboard</title>
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script>
@@ -26,7 +26,6 @@
             --text-secondary: #a1a1aa;
             --border-color: #2e2e33;
             --input-bg: #0e0e10;
-            --vertex-header: #26262b;
         }
         
         html.light {
@@ -39,14 +38,13 @@
             --text-secondary: #6B7280;
             --border-color: #E5E7EB;
             --input-bg: #FFFFFF;
-            --vertex-header: #F9FAFB;
             --primary-purple: #5B3DF5;
             --hover-purple: #4C2FE3;
         }
 
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-page); color: var(--text-primary); }
         
-        /* Apply variables to override hardcoded dark classes when .light class is present on html */
+        /* Light theme styles overrides */
         html.light body { background-color: var(--bg-page) !important; color: var(--text-primary) !important; }
         html.light h1, html.light h2, html.light h3, html.light h4, html.light .font-bold, html.light .font-semibold {
             color: var(--text-heading) !important;
@@ -57,45 +55,28 @@
         html.light nav .text-zinc-500 { color: var(--text-secondary) !important; }
         html.light .bg-\[\#1c1c1f\] { background-color: var(--bg-panel) !important; border-color: var(--border-color) !important; }
         html.light .bg-\[\#18181b\] { background-color: var(--bg-inner) !important; border-color: var(--border-color) !important; }
-        html.light .bg-\[\#2e2e33\] { background-color: var(--bg-inner) !important; color: var(--text-primary) !important; }
         html.light .border-\[\#2e2e33\] { border-color: var(--border-color) !important; }
-        html.light .divide-\[\#2e2e33\] > * { border-color: var(--border-color) !important; }
         html.light .text-zinc-100 { color: var(--text-primary) !important; }
-        html.light .text-zinc-200 { color: var(--text-primary) !important; }
         html.light .text-zinc-300 { color: var(--text-primary) !important; }
         html.light .text-zinc-400 { color: var(--text-secondary) !important; }
         html.light .text-zinc-500 { color: var(--text-secondary) !important; }
-        html.light .bg-\[\#0e0e10\] { background-color: var(--input-bg) !important; border-color: var(--border-color) !important; }
-        html.light .bg-\[\#26262b\] { background-color: var(--vertex-header) !important; }
         
         /* Purple theme color overrides */
         html.light .bg-indigo-600 { background-color: var(--primary-purple) !important; }
         html.light .hover\:bg-indigo-500:hover { background-color: var(--hover-purple) !important; }
         html.light .text-indigo-500 { color: var(--primary-purple) !important; }
         html.light .text-indigo-400 { color: var(--primary-purple) !important; }
-        html.light .focus\:border-indigo-500:focus { border-color: var(--primary-purple) !important; }
-        html.light .border-indigo-600\/50 { border-color: rgba(91, 61, 245, 0.5) !important; }
-        html.light .accent-indigo-500 { accent-color: var(--primary-purple) !important; }
-        html.light .bg-indigo-600\/20 { background-color: rgba(91, 61, 245, 0.2) !important; }
-        html.light .hover\:bg-indigo-600\/30:hover { background-color: rgba(91, 61, 245, 0.3) !important; }
         
-        html.light input, html.light select, html.light textarea { 
-            background-color: var(--input-bg) !important; 
-            border-color: var(--border-color) !important; 
-            color: var(--text-primary) !important; 
-        }
-        html.light input::placeholder, html.light select::placeholder, html.light textarea::placeholder {
-            color: var(--text-secondary) !important;
-        }
-        
+        /* Scrollbar styling */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-page); }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
         .modal-active { display: flex !important; }
         .modal-enter { opacity: 1 !important; transform: scale(1) !important; }
 
-        /* Uiverse.io theme switch styles by rishichawda */
+        /* Theme switch button styles */
         #theme-toggle-button {
           font-size: 11px;
           position: relative;
@@ -105,70 +86,28 @@
           cursor: pointer;
         }
 
-        /* Hide default HTML checkbox */
         #toggle {
           opacity: 0;
           width: 0;
           height: 0;
         }
 
-        #container,
-        #patches,
-        #stars,
-        #button,
-        #sun,
-        #moon,
-        #cloud {
-          transition-property: all;
-          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-          transition-duration: 0.25s;
+        #container, #patches, #stars, #button, #sun, #moon, #cloud {
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* night sky background */
-        #toggle:checked + svg #container {
-          fill: #2b4360;
-        }
+        #toggle:checked + svg #container { fill: #2b4360; }
+        #toggle:checked + svg #button { transform: translate(28px, 2.333px); }
+        #sun { opacity: 1; }
+        #toggle:checked + svg #sun { opacity: 0; }
+        #moon { opacity: 0; }
+        #toggle:checked + svg #moon { opacity: 1; }
+        #cloud { opacity: 1; }
+        #toggle:checked + svg #cloud { opacity: 0; }
+        #stars { opacity: 0; }
+        #toggle:checked + svg #stars { opacity: 1; }
 
-        /* move button to right when checked */
-        #toggle:checked + svg #button {
-          transform: translate(28px, 2.333px);
-        }
-
-        /* show/hide sun and moon based on checkbox state */
-        #sun {
-          opacity: 1;
-        }
-
-        #toggle:checked + svg #sun {
-          opacity: 0;
-        }
-
-        #moon {
-          opacity: 0;
-        }
-
-        #toggle:checked + svg #moon {
-          opacity: 1;
-        }
-
-        /* show or hide background items on checkbox state */
-        #cloud {
-          opacity: 1;
-        }
-
-        #toggle:checked + svg #cloud {
-          opacity: 0;
-        }
-
-        #stars {
-          opacity: 0;
-        }
-
-        #toggle:checked + svg #stars {
-          opacity: 1;
-        }
-
-        /* Uiverse.io button style by satyamchaudharydev */
+        /* Uiverse button styles */
         .uiverse-btn {
           margin: 0;
           height: auto;
@@ -180,9 +119,6 @@
           justify-content: center;
           align-items: center;
           width: 100%;
-        }
-
-        .uiverse-btn {
           --border-right: 6px;
           --text-stroke-color: rgba(255, 255, 255, 0.4);
           --animation-color: #37FF8B;
@@ -197,15 +133,12 @@
           -webkit-text-stroke: 1px var(--text-stroke-color);
         }
 
-        /* Light theme overrides */
         html.light .uiverse-btn {
           --text-stroke-color: rgba(17, 24, 39, 0.3);
           --animation-color: #5B3DF5;
         }
 
-        .uiverse-btn .actual-text {
-          padding: 10px 0;
-        }
+        .uiverse-btn .actual-text { padding: 10px 0; }
 
         .hover-text {
           position: absolute;
@@ -227,59 +160,62 @@
           width: 100%;
           filter: drop-shadow(0 0 23px var(--animation-color));
         }
+
+        /* Glassmorphism pane card */
+        .pane-card {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .pane-card:hover {
+            transform: translateY(-4px);
+            border-color: #6366f1; /* purple hover border */
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        html.light .pane-card:hover {
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.15);
+        }
     </style>
 </head>
 <body class="bg-[#0e0e10] text-[#f0f0f2] h-screen flex flex-col overflow-hidden">
 
+    <!-- Top Navbar -->
     <nav class="h-16 shrink-0 border-b border-[#2e2e33] bg-[#0e0e10] flex items-center justify-between px-6 z-50">
-
         <div class="flex items-center gap-8">
-            <div class="flex items-center gap-2 text-indigo-500 font-bold text-lg">
+            <div class="flex items-center gap-2 text-indigo-500 font-bold text-lg cursor-pointer" onclick="window.location.href='/dashboard'">
                 <span>⌂</span><span>PlotMySpace</span>
             </div>
             <ul class="flex items-center gap-2">
-                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium text-sm">
+                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100" onclick="window.location.href='/studio'">
                     <span>⛶</span> Studio Workspace
                 </li>
-                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-40 text-zinc-400 font-medium text-sm cursor-not-allowed">
-                    <span>▦</span> Pitch & Pack <span class="text-xs">🔒</span>
+                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100" onclick="window.location.href='/iteration'">
+                    <span>▦</span> Pitch & Pack
                 </li>
             </ul>
         </div>
 
         <div class="flex items-center gap-4">
             <div class="flex items-center gap-3 border-r border-[#2e2e33] pr-4">
-                <!-- Theme Toggle Switch (Uiverse.io by rishichawda) -->
+                <!-- Theme Toggle Switch -->
                 <label id="theme-toggle-button" class="mr-3" title="Toggle Light/Dark Mode">
                     <input type="checkbox" id="toggle">
                     <svg viewBox="0 0 69 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-[7em]">
-                        <!-- Background sky -->
                         <rect id="container" width="69" height="28" rx="14" fill="#B3C7D6"/>
-                        
-                        <!-- Stars (visible in dark mode) -->
                         <g id="stars" opacity="0">
                             <circle cx="20" cy="8" r="0.7" fill="white" />
                             <circle cx="15" cy="18" r="0.5" fill="white" />
                             <circle cx="25" cy="20" r="0.6" fill="white" />
                             <circle cx="35" cy="10" r="0.8" fill="white" opacity="0.8" />
                         </g>
-                        
-                        <!-- Clouds (visible in day mode) -->
                         <g id="cloud" opacity="1">
                             <path d="M50 20a3.5 3.5 0 0 1 3.5-3.5 3.5 3.5 0 0 1 3.2 2.1 3 3 0 0 1 .8-.1 3 3 0 0 1 3 3 3 3 0 0 1-3 3H50a3.5 3.5 0 0 1 0-7" fill="white" opacity="0.9" />
                         </g>
-                        
-                        <!-- Sliding button group -->
                         <g id="button">
-                            <!-- Knob base -->
                             <circle cx="14" cy="14" r="10" fill="#FFE555" />
-                            
-                            <!-- Sun Details -->
                             <g id="sun" opacity="1">
                                 <circle cx="14" cy="14" r="11.5" stroke="#FFE555" stroke-width="1.5" stroke-dasharray="3 2" />
                             </g>
-                            
-                            <!-- Moon & Craters -->
                             <g id="moon" opacity="0">
                                 <circle cx="14" cy="14" r="10" fill="#D2D6DC" />
                                 <g id="patches">
@@ -303,142 +239,130 @@
         </div>
     </nav>
 
-    <main class="flex-1 p-6 overflow-hidden">
+    <!-- Main Body Workspace -->
+    <main class="flex-1 p-8 overflow-y-auto flex flex-col items-center justify-between">
+        <!-- Dashboard Header -->
+        <div class="w-full max-w-6xl text-center mb-4 mt-2">
+            <h1 class="text-3xl font-extrabold tracking-tight text-white mb-2">Welcome to Project Workspace</h1>
+            <p class="text-sm text-zinc-400">Select any layout pane to inspect properties, or launch the building studio below.</p>
+        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 h-full">
-
-            <div class="lg:col-span-3 bg-[#1c1c1f] border border-[#2e2e33] rounded-xl flex flex-col overflow-hidden h-full">
-                <div class="p-4 border-b border-[#2e2e33] bg-[#18181b]">
-                    <h3 class="text-sm font-semibold flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                        Planning Agent
-                    </h3>
-                    <p class="text-[11px] text-zinc-400 mt-1">Human-in-the-loop brief generator</p>
-                </div>
-
-                <div id="chatBox" class="flex-1 p-4 overflow-y-auto space-y-4 text-sm flex flex-col">
-                    <div class="self-start bg-[#2e2e33] text-zinc-100 px-3 py-2 rounded-lg max-w-[90%]">
-                        Hello {{ user.name.split()[0] if user.name else 'Architect' }}! I see we are planning a plot. What are your core requirements for the programme? (e.g. number of bedrooms, specific spaces)
+        <!-- 5-Pane Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 w-full max-w-6xl mb-6">
+            
+            <!-- Site Plan -->
+            <div onclick="window.location.href='/studio'" class="pane-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer h-[220px]">
+                <div>
+                    <div class="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center mb-4 text-xl">
+                        <span>⛶</span>
                     </div>
+                    <h3 class="text-base font-bold text-zinc-100 mb-2">Site Plan</h3>
+                    <p class="text-xs text-zinc-400 leading-relaxed">Define boundary lines, setbacks, and tree zones.</p>
                 </div>
-
-                <div class="p-3 border-t border-[#2e2e33] bg-[#18181b]">
-                    <form id="chatForm" class="flex items-center gap-2">
-                        <input type="text" id="chatInput" placeholder="Type instructions..." class="flex-1 min-w-0 bg-[#0e0e10] border border-[#2e2e33] focus:border-indigo-500 rounded-lg px-3 py-2 text-sm outline-none" required>
-                        <button type="submit" class="shrink-0 p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors flex items-center justify-center">
-                            <svg class="w-4 h-4 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
-                        </button>
-                    </form>
+                <div class="flex items-center justify-between text-[11px] font-medium text-red-400 mt-2">
+                    <span>Boundary & Plot</span>
+                    <span>→</span>
                 </div>
             </div>
 
-            <div class="lg:col-span-5 flex flex-col gap-4 h-full">
-                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 flex flex-col flex-1 relative">
-
-                    <div class="flex justify-between w-full items-center mb-3">
-                        <div class="flex items-center gap-3">
-                            <h3 class="text-sm font-semibold">Boundary Editor</h3>
-                            <button id="btnViewTopology" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-[11px] font-medium transition-colors shadow-sm">
-                                View Topology
-                            </button>
-                        </div>
-
-                        <div class="flex items-center gap-3">
-                            <label class="flex items-center gap-2 text-[11px] text-zinc-400 cursor-pointer">
-                                <input type="checkbox" id="snapGridToggle" checked class="accent-indigo-500 rounded"> Snap to grid
-                            </label>
-                            <button id="btnShapeRect" class="px-2 py-1 bg-[#18181b] border border-[#2e2e33] hover:bg-[#26262b] rounded text-xs">Rect</button>
-                            <button id="btnShapeL" class="px-2 py-1 bg-[#18181b] border border-[#2e2e33] hover:bg-[#26262b] rounded text-xs">L-Shape</button>
-                        </div>
+            <!-- Floor Plan -->
+            <div id="btnFloorPlanCard" class="pane-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer h-[220px]">
+                <div>
+                    <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4 text-xl">
+                        <span>☷</span>
                     </div>
-
-                    <div id="canvasContainer" class="w-full flex-1 border border-[#2e2e33] rounded-lg bg-[#18181b] relative overflow-hidden">
-                        <canvas id="plotCanvas" class="absolute inset-0 cursor-crosshair"></canvas>
-                    </div>
-
-                    <div class="flex justify-around items-center bg-[#18181b] border border-[#2e2e33] rounded-lg p-3 mt-3 text-xs">
-                        <div>Lot: <span id="valLotArea" class="font-semibold text-zinc-100">0</span> sq ft</div>
-                        <div>Footprint: <span id="valFootprintArea" class="font-semibold text-zinc-100">0</span> sq ft</div>
-                        <div>Coverage: <span id="valCoverage" class="font-semibold text-zinc-100">0%</span></div>
-                    </div>
+                    <h3 class="text-base font-bold text-zinc-100 mb-2">Floor Plan</h3>
+                    <p class="text-xs text-zinc-400 leading-relaxed">Arrange and review internal rooms across multiple levels.</p>
                 </div>
-
-                <button id="btnValidate" class="uiverse-btn" data-text="Submit to Agent">
-                    <span class="actual-text">&nbsp;Submit to Agent&nbsp;</span>
-                    <span class="hover-text" aria-hidden="true">&nbsp;Submit to Agent&nbsp;</span>
-                </button>
+                <div class="flex items-center justify-between text-[11px] font-medium text-indigo-400 mt-2">
+                    <span>Interactive Rooms</span>
+                    <span>→</span>
+                </div>
             </div>
 
-            <div class="lg:col-span-4 flex flex-col gap-4 overflow-y-auto pr-2 h-full">
-
-                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0">
-                    <h3 class="text-sm font-semibold mb-3">Zoning & Setbacks</h3>
-                    <select id="regionSelect" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 text-sm rounded-lg px-3 py-2 outline-none mb-4 cursor-pointer text-zinc-200">
-                        <option value="seattle">Seattle, WA</option>
-                        <option value="bellevue">Bellevue, WA</option>
-                        <option value="redmond">Redmond, WA</option>
-                        <option value="bothell">Bothell, WA</option>
-                    </select>
-                    <div class="grid grid-cols-2 gap-2" id="setbackWidgets"></div>
+            <!-- Side Views -->
+            <div onclick="window.location.href='/iteration?view=side'" class="pane-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer h-[220px]">
+                <div>
+                    <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4 text-xl">
+                        <span>⛃</span>
+                    </div>
+                    <h3 class="text-base font-bold text-zinc-100 mb-2">Side Views</h3>
+                    <p class="text-xs text-zinc-400 leading-relaxed">Examine external elevation facades matching contours.</p>
                 </div>
-
-                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0 flex flex-col">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-sm font-semibold">Tree Protection Zones</h3>
-                        <button id="btnAddTree" type="button" class="px-2 py-1 bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 border border-indigo-600/50 rounded text-xs transition-colors">+ Add Tree</button>
-                    </div>
-                    <div id="treeListContainer" class="space-y-3 max-h-[220px] overflow-y-auto pr-1">
-                        <!-- Dynamic Tree Items will be inserted here -->
-                    </div>
+                <div class="flex items-center justify-between text-[11px] font-medium text-emerald-400 mt-2">
+                    <span>2D Facades</span>
+                    <span>→</span>
                 </div>
-
-                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0">
-                    <h3 class="text-sm font-semibold mb-3">Manual Coordinates (JSON)</h3>
-                    <textarea id="jsonCoords" rows="2" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 rounded-lg p-2 text-[11px] font-mono outline-none"></textarea>
-                    <div class="flex justify-between items-center text-[10px] text-zinc-500 mt-2">
-                        <label class="px-2 py-1 border border-[#2e2e33] hover:bg-[#26262b] rounded-md transition-colors text-zinc-300 cursor-pointer flex items-center gap-1">
-                            <span>📤 Import DXF</span>
-                            <input type="file" id="dxfFileInput" accept=".dxf" class="hidden">
-                        </label>
-                        <button id="btnClearAll" class="px-2 py-1 border border-[#2e2e33] hover:bg-[#26262b] rounded-md transition-colors text-zinc-300">Clear All</button>
-                    </div>
-                </div>
-
-                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 flex flex-col min-h-[220px] flex-1">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-sm font-semibold">Vertex Coordinates</h3>
-                        <button id="btnAddVertex" class="px-2 py-1 bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 border border-indigo-600/50 rounded text-xs transition-colors">+ Add Vertex</button>
-                    </div>
-                    <div class="flex-1 overflow-y-auto border border-[#2e2e33] rounded-lg bg-[#18181b]">
-                        <table class="w-full text-xs text-left">
-                            <thead class="sticky top-0 bg-[#26262b] text-zinc-400 shadow-sm">
-                                <tr>
-                                    <th class="px-3 py-2 font-medium">Vertex</th>
-                                    <th class="px-3 py-2 font-medium">X (ft)</th>
-                                    <th class="px-3 py-2 font-medium">Y (ft)</th>
-                                    <th class="px-3 py-2 font-medium text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="vertexTableBody" class="divide-y divide-[#2e2e33]"></tbody>
-                        </table>
-                    </div>
-                </div>
-
             </div>
+
+            <!-- Roof Plan -->
+            <div onclick="window.location.href='/iteration?view=roof'" class="pane-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer h-[220px]">
+                <div>
+                    <div class="w-10 h-10 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4 text-xl">
+                        <span>⏏</span>
+                    </div>
+                    <h3 class="text-base font-bold text-zinc-100 mb-2">Roof Plan</h3>
+                    <p class="text-xs text-zinc-400 leading-relaxed">Configure pitch, drainage directions, and fire lines.</p>
+                </div>
+                <div class="flex items-center justify-between text-[11px] font-medium text-cyan-400 mt-2">
+                    <span>Pitch & Drainage</span>
+                    <span>→</span>
+                </div>
+            </div>
+
+            <!-- Report Generated -->
+            <div onclick="window.location.href='/iteration?view=report'" class="pane-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer h-[220px]">
+                <div>
+                    <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center mb-4 text-xl">
+                        <span>📄</span>
+                    </div>
+                    <h3 class="text-base font-bold text-zinc-100 mb-2">Report Generated</h3>
+                    <p class="text-xs text-zinc-400 leading-relaxed">View permitting-grade PDF reports and calculations.</p>
+                </div>
+                <div class="flex items-center justify-between text-[11px] font-medium text-amber-500 mt-2">
+                    <span>Permit Package</span>
+                    <span>→</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Start Building Action Button -->
+        <div class="w-full max-w-xl flex flex-col items-center border-t border-[#2e2e33]/40 pt-6 pb-6">
+            <button onclick="window.location.href='/studio'" class="uiverse-btn max-w-sm mb-3" data-text="Start Building">
+                <span class="actual-text">&nbsp;Start Building&nbsp;</span>
+                <span class="hover-text" aria-hidden="true">&nbsp;Start Building&nbsp;</span>
+            </button>
+            <p class="text-[11px] text-zinc-500">Launches the Studio boundary tool to generate legal envelopes.</p>
         </div>
     </main>
 
-    <div id="dummyPopup" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center">
-        <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-2xl p-6 w-[400px] shadow-2xl flex flex-col items-center text-center transform scale-95 opacity-0 transition-all duration-300" id="popupContent">
-            <div class="w-12 h-12 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center mb-4">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+    <!-- Floor Plan Selector Modal -->
+    <div id="floorModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center transition-all duration-300">
+        <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-2xl p-6 w-[360px] shadow-2xl flex flex-col items-center text-center transform scale-95 opacity-0 transition-all duration-300" id="floorModalContent">
+            <div class="w-12 h-12 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4 text-xl">
+                <span>☷</span>
             </div>
-            <h3 class="text-lg font-bold text-white mb-2">Boundary Submitted</h3>
-            <p class="text-sm text-zinc-400 mb-6">Your plot coordinates and constraint parameters have been sent to the Planning Agent pipeline for processing.</p>
-            <button id="btnClosePopup" class="w-full py-2.5 bg-[#2e2e33] hover:bg-[#3f3f46] text-white rounded-lg transition-colors font-medium border border-[#3f3f46]">Continue Working</button>
+            <h3 class="text-lg font-bold text-white mb-1">Select Floor Layout</h3>
+            <p class="text-xs text-zinc-400 mb-6">Choose a level to load in the drawing viewer:</p>
+            
+            <div class="flex flex-col gap-3 w-full mb-4">
+                <a href="/iteration?floor=ground" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2">
+                    <span>⌂</span> Ground Floor
+                </a>
+                <a href="/iteration?floor=1st" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2">
+                    <span>🏢</span> 1st Floor
+                </a>
+                <a href="/iteration?floor=2nd" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2">
+                    <span>🛪</span> 2nd Floor
+                </a>
+            </div>
+            
+            <button id="btnCloseFloorModal" class="w-full py-2 bg-[#2e2e33] hover:bg-[#3f3f46] text-zinc-300 rounded-lg transition-colors text-xs font-medium border border-[#3f3f46]">Cancel</button>
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <!-- Theme and Modal Javascript -->
+    <script src="{{ url_for('static', filename='js/main_dashboard.js') }}"></script>
 </body>
 </html>

@@ -148,7 +148,7 @@
                 <span>⌂</span><span>PlotMySpace</span>
             </div>
             <ul class="flex items-center gap-2">
-                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100" onclick="window.location.href='/dashboard'">
+                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100" onclick="window.location.href='/studio'">
                     <span>⛶</span> Studio Workspace
                 </li>
                 <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium text-sm">
@@ -159,7 +159,7 @@
 
         <div class="flex items-center gap-4">
             <button onclick="window.location.href='/dashboard'" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-1">
-                ← Back to Studio
+                ← Back to Dashboard
             </button>
             <div class="flex items-center gap-3 border-l border-[#2e2e33] pl-4">
                 <!-- Theme Toggle Switch -->
@@ -357,6 +357,11 @@
         let showWalls = true;
         let showDims = true;
 
+        // Parse query parameters to inspect current layout level/view
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeFloor = urlParams.get('floor') || 'ground';
+        const activeView = urlParams.get('view') || '';
+
         document.getElementById('btnToggleWalls').addEventListener('click', () => {
             showWalls = !showWalls;
             drawCAD();
@@ -391,6 +396,26 @@
             const boundaryColor = '#ef4444'; // Red property boundary
             const setbackColor = '#10b981'; // Green setback line
             const fontColor = isLight ? '#1f2937' : '#9ca3af';
+
+            // Dynamically update subtitles based on params
+            const titleElem = document.getElementById('iterationTitle');
+            const subTitleElem = titleElem ? titleElem.nextElementSibling : null;
+            if (titleElem && subTitleElem) {
+                if (activeView === 'side') {
+                    titleElem.textContent = "Output of Facade Generation:";
+                    subTitleElem.textContent = "Rendered Topography Elevation Facade View (2D Silhouette)";
+                } else if (activeView === 'roof') {
+                    titleElem.textContent = "Output of Roof Plan Generation:";
+                    subTitleElem.textContent = "Rendered Roof Pitch & Drainage Vector Layout";
+                } else if (activeView === 'report') {
+                    titleElem.textContent = "Permitting Report Summary:";
+                    subTitleElem.textContent = "Compliance Calculations & Sign-Off Documentation";
+                } else {
+                    let floorLabel = activeFloor === 'ground' ? 'Ground Floor' : activeFloor === '1st' ? '1st Floor' : '2nd Floor';
+                    titleElem.textContent = `Output of ${getOrdinal(iterationCount)} Iteration:`;
+                    subTitleElem.textContent = `Rendered Floor Plan Layout - ${floorLabel}`;
+                }
+            }
 
             // Fill background
             ctx.fillStyle = bgGridColor;
@@ -435,112 +460,320 @@
             ctx.lineTo(tx(100), ty(0));
             ctx.stroke();
 
-            // Draw Property Boundary (Red Polyline)
-            ctx.beginPath();
-            plotVertices.forEach((p, i) => i === 0 ? ctx.moveTo(tx(p[0]), ty(p[1])) : ctx.lineTo(tx(p[0]), ty(p[1])));
-            ctx.closePath();
-            ctx.strokeStyle = boundaryColor;
-            ctx.lineWidth = 2.5;
-            ctx.stroke();
+            // Render based on active view type
+            if (activeView === 'side') {
+                // Ground line
+                ctx.strokeStyle = '#10b981'; // Green terrain
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(tx(5), ty(15));
+                ctx.lineTo(tx(95), ty(15));
+                ctx.stroke();
 
-            // Label Property Boundary edges
-            ctx.fillStyle = fontColor;
-            ctx.font = '10px monospace';
-            ctx.fillText("PROPERTY BOUNDARY", tx(50), ty(12));
-
-            // Draw Setbacks (Green dashed polyline)
-            ctx.beginPath();
-            setbackVertices.forEach((p, i) => i === 0 ? ctx.moveTo(tx(p[0]), ty(p[1])) : ctx.lineTo(tx(p[0]), ty(p[1])));
-            ctx.closePath();
-            ctx.strokeStyle = setbackColor;
-            ctx.lineWidth = 1.5;
-            ctx.setLineDash([6, 4]);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            // Draw Building Walls / Rooms (White/Grey lines representing CAD block)
-            if (showWalls) {
-                ctx.strokeStyle = isLight ? '#4b5563' : '#e5e7eb';
+                // Elevation foundation (fill)
+                ctx.fillStyle = isLight ? '#e5e7eb' : '#26262b';
+                ctx.fillRect(tx(25), ty(20), 50 * scale, 5 * scale); // 5ft foundation above ground
+                ctx.strokeStyle = isLight ? '#9ca3af' : '#4b5563';
                 ctx.lineWidth = 2;
+                ctx.strokeRect(tx(25), ty(20), 50 * scale, 5 * scale);
 
-                // Main house box inside setbacks (dynamically changes with iteration feedback)
-                const shiftAmt = Math.min((iterationCount - 1) * 2, 8);
-                const wStart = [28 + shiftAmt, 28];
-                const wEnd = [74, 56];
+                // Ground floor facade
+                ctx.fillStyle = isLight ? '#f9fafb' : '#1c1c1f';
+                ctx.fillRect(tx(26), ty(50), 48 * scale, 30 * scale);
+                ctx.strokeRect(tx(26), ty(50), 48 * scale, 30 * scale);
 
-                ctx.strokeRect(tx(wStart[0]), ty(wEnd[1]), (wEnd[0] - wStart[0]) * scale, (wEnd[1] - wStart[1]) * scale);
+                // 1st floor facade
+                ctx.fillStyle = isLight ? '#f3f4f6' : '#18181b';
+                ctx.fillRect(tx(26), ty(80), 48 * scale, 30 * scale);
+                ctx.strokeRect(tx(26), ty(80), 48 * scale, 30 * scale);
 
-                // Room partitions
-                const pVertX = 48 + shiftAmt / 2;
+                // Pitched roof (triangle)
+                ctx.fillStyle = isLight ? '#d1d5db' : '#2e2e33';
                 ctx.beginPath();
-                // Partition vertical
-                ctx.moveTo(tx(pVertX), ty(28));
-                ctx.lineTo(tx(pVertX), ty(56));
-                // Partition horizontal
-                ctx.moveTo(tx(pVertX), ty(42));
-                ctx.lineTo(tx(74), ty(42));
+                ctx.moveTo(tx(24), ty(80));
+                ctx.lineTo(tx(50), ty(95));
+                ctx.lineTo(tx(76), ty(80));
+                ctx.closePath();
+                ctx.fill();
                 ctx.stroke();
 
-                // Room Labels
-                ctx.fillStyle = isLight ? '#1f2937' : '#f3f4f6';
-                ctx.font = 'bold 11px sans-serif';
+                // Windows & Doors
+                ctx.fillStyle = '#06b6d4'; // Cyan glass
+                // Ground floor door
+                ctx.fillRect(tx(32), ty(40), 8 * scale, 20 * scale);
+                ctx.strokeRect(tx(32), ty(40), 8 * scale, 20 * scale);
+                // Windows
+                ctx.fillRect(tx(55), ty(35), 10 * scale, 12 * scale);
+                ctx.strokeRect(tx(55), ty(35), 10 * scale, 12 * scale);
+                ctx.fillRect(tx(35), ty(65), 10 * scale, 12 * scale);
+                ctx.strokeRect(tx(35), ty(65), 10 * scale, 12 * scale);
+                ctx.fillRect(tx(55), ty(65), 10 * scale, 12 * scale);
+                ctx.strokeRect(tx(55), ty(65), 10 * scale, 12 * scale);
+
+                // Labels
+                ctx.fillStyle = fontColor;
+                ctx.font = '10px monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText("LIVING ROOM", tx((wStart[0] + pVertX) / 2), ty(42));
-                ctx.fillText("MASTER BED", tx((pVertX + 74) / 2), ty(49));
-                ctx.fillText("KITCHEN", tx((pVertX + 74) / 2), ty(35));
-                ctx.textAlign = 'left';
-            }
+                ctx.fillText("FRONT ELEVATION VIEW (FACADE)", tx(50), ty(5));
+                ctx.fillText("MAX HEIGHT LIMIT: 35.0'", tx(50), ty(98));
 
-            // Draw Dimensions (Blue/Cyan lines with ticks)
-            if (showDims) {
-                ctx.strokeStyle = '#06b6d4'; // Cyan
+                if (showDims) {
+                    ctx.strokeStyle = '#06b6d4';
+                    ctx.fillStyle = '#06b6d4';
+                    ctx.lineWidth = 1;
+                    
+                    // Height dimensions
+                    ctx.beginPath();
+                    ctx.moveTo(tx(20), ty(15));
+                    ctx.lineTo(tx(20), ty(80));
+                    ctx.stroke();
+                    ctx.fillText("H: 65.0'", tx(14), ty(47));
+                }
+            } 
+            else if (activeView === 'roof') {
+                // Draw Property Boundary (Red Polyline)
+                ctx.beginPath();
+                plotVertices.forEach((p, i) => i === 0 ? ctx.moveTo(tx(p[0]), ty(p[1])) : ctx.lineTo(tx(p[0]), ty(p[1])));
+                ctx.closePath();
+                ctx.strokeStyle = boundaryColor;
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+
+                // Draw Setbacks (Green dashed)
+                ctx.beginPath();
+                setbackVertices.forEach((p, i) => i === 0 ? ctx.moveTo(tx(p[0]), ty(p[1])) : ctx.lineTo(tx(p[0]), ty(p[1])));
+                ctx.closePath();
+                ctx.strokeStyle = setbackColor;
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([6, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Draw Roof outline (Solid grey envelope)
+                ctx.fillStyle = isLight ? 'rgba(75, 85, 99, 0.15)' : 'rgba(229, 231, 235, 0.08)';
+                ctx.fillRect(tx(28), ty(56), 46 * scale, 28 * scale);
+                ctx.strokeStyle = isLight ? '#374151' : '#f3f4f6';
+                ctx.lineWidth = 2.5;
+                ctx.strokeRect(tx(28), ty(56), 46 * scale, 28 * scale);
+
+                // Draw Hip Ridge Lines
+                ctx.strokeStyle = isLight ? '#4b5563' : '#a1a1aa';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                // Corners to ridge
+                ctx.moveTo(tx(28), ty(28)); ctx.lineTo(tx(40), ty(42));
+                ctx.moveTo(tx(28), ty(56)); ctx.lineTo(tx(40), ty(42));
+                ctx.moveTo(tx(74), ty(28)); ctx.lineTo(tx(62), ty(42));
+                ctx.moveTo(tx(74), ty(56)); ctx.lineTo(tx(62), ty(42));
+                // Center ridge line
+                ctx.moveTo(tx(40), ty(42)); ctx.lineTo(tx(62), ty(42));
+                ctx.stroke();
+
+                // Water drainage arrows (Cyan)
+                ctx.strokeStyle = '#06b6d4';
                 ctx.fillStyle = '#06b6d4';
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 1.5;
+                // Helper to draw arrows
+                function drawArrow(x1, y1, x2, y2) {
+                    ctx.beginPath();
+                    ctx.moveTo(tx(x1), ty(y1));
+                    ctx.lineTo(tx(x2), ty(y2));
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(tx(x2), ty(y2), 2 * scale, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                drawArrow(51, 46, 51, 52); // North drainage
+                drawArrow(51, 38, 51, 32); // South drainage
+                drawArrow(34, 42, 30, 42); // West drainage
+                drawArrow(68, 42, 72, 42); // East drainage
 
-                // Plot boundary dimension lines
-                // Left offset dimension
+                ctx.fillStyle = fontColor;
+                ctx.font = '10px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText("ROOF PLAN VIEW (HIP ROOF)", tx(50), ty(5));
+                ctx.fillText("PITCH: 4/12 (18.4°)", tx(51), ty(45));
+            }
+            else if (activeView === 'report') {
+                // Draw a nice compliance report sheet layout
+                ctx.fillStyle = isLight ? '#ffffff' : '#1c1c1f';
+                ctx.fillRect(tx(15), ty(90), 70 * scale, 80 * scale);
+                ctx.strokeStyle = isLight ? '#d1d5db' : '#2e2e33';
+                ctx.lineWidth = 2.5;
+                ctx.strokeRect(tx(15), ty(90), 70 * scale, 80 * scale);
+
+                // Report text headers
+                ctx.fillStyle = isLight ? '#111827' : '#ffffff';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("PERMITTING COMPLIANCE BRIEF", tx(50), ty(83));
+                ctx.strokeStyle = isLight ? '#e5e7eb' : '#2e2e33';
+                ctx.beginPath(); ctx.moveTo(tx(20), ty(78)); ctx.lineTo(tx(80), ty(78)); ctx.stroke();
+
+                ctx.fillStyle = fontColor;
+                ctx.font = '10px monospace';
+                ctx.textAlign = 'left';
+                const startY = 72;
+                const gap = 6;
+                const reportLines = [
+                    "1. SITE BOUNDARY SUMMARY:",
+                    "   - Total Lot Area        : 6,120 sq ft",
+                    "   - Max Allowed Coverage   : 35.0% (2,142 sq ft)",
+                    "   - Target Footprint Area : 2,120 sq ft (34.6%)",
+                    "   - Compliance Status     : PASS",
+                    "",
+                    "2. ZONING & SETBACKS (SF-5000):",
+                    "   - Front Setback Required: 25.0 ft | Actual: 25.0 ft",
+                    "   - Side Setback Required : 8.0 ft  | Actual: 8.0 ft",
+                    "   - Height Limit          : 35.0 ft | Actual: 30.0 ft",
+                    "   - Compliance Status     : PASS",
+                    "",
+                    "3. TREE PROTECTION ZONE (TPZ):",
+                    "   - TPZ Collision Buffer  : 12.0 ft radius",
+                    "   - Closest Tree Clearance: 32.0 ft",
+                    "   - Compliance Status     : PASS"
+                ];
+
+                reportLines.forEach((l, idx) => {
+                    ctx.fillText(l, tx(22), ty(startY - idx * gap));
+                });
+
+                // Watermark approved check logo
+                ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+                ctx.fillStyle = 'rgba(16, 185, 129, 0.1)';
+                ctx.lineWidth = 3;
                 ctx.beginPath();
-                ctx.moveTo(tx(15), ty(15));
-                ctx.lineTo(tx(23), ty(23));
-                ctx.stroke();
-
-                ctx.font = '9px monospace';
-                ctx.fillText("8.0'", tx(18), ty(17));
-
-                // Front setback dimension
-                ctx.beginPath();
-                ctx.moveTo(tx(16), ty(81));
-                ctx.lineTo(tx(24), ty(71));
-                ctx.stroke();
-                ctx.fillText("10.0'", tx(18), ty(76));
-
-                // Draw tree dimension line
-                ctx.beginPath();
-                ctx.moveTo(tx(75), ty(88));
-                ctx.lineTo(tx(74), ty(56));
-                ctx.strokeStyle = '#3b82f6'; // Blue for tree exclusion
+                ctx.arc(tx(70), ty(30), 12 * scale, 0, Math.PI * 2);
+                ctx.fill();
                 ctx.stroke();
                 
-                ctx.fillStyle = '#3b82f6';
-                ctx.fillText("Tree clear: 32'", tx(77), ty(72));
+                ctx.fillStyle = '#10b981';
+                ctx.font = 'bold 9px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("APPROVED", tx(70), ty(28));
+                ctx.fillText("COMPLIANT", tx(70), ty(32));
             }
+            else {
+                // DRAW STANDARD FLOOR PLANS (Ground, 1st, or 2nd)
+                // Draw Property Boundary (Red Polyline)
+                ctx.beginPath();
+                plotVertices.forEach((p, i) => i === 0 ? ctx.moveTo(tx(p[0]), ty(p[1])) : ctx.lineTo(tx(p[0]), ty(p[1])));
+                ctx.closePath();
+                ctx.strokeStyle = boundaryColor;
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
 
-            // Draw Tree Exclusion Zone
-            ctx.beginPath();
-            ctx.arc(tx(75), ty(88), 12 * scale, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(59, 130, 246, 0.08)';
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)';
-            ctx.lineWidth = 1.2;
-            ctx.setLineDash([4, 4]);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            
-            ctx.fillStyle = '#3b82f6';
-            ctx.font = '9px Inter, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText("Tree zone", tx(75), ty(88) + 3);
-            ctx.textAlign = 'left';
+                // Label Property Boundary
+                ctx.fillStyle = fontColor;
+                ctx.font = '10px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText("PROPERTY BOUNDARY", tx(50), ty(12));
+
+                // Draw Setbacks (Green dashed polyline)
+                ctx.beginPath();
+                setbackVertices.forEach((p, i) => i === 0 ? ctx.moveTo(tx(p[0]), ty(p[1])) : ctx.lineTo(tx(p[0]), ty(p[1])));
+                ctx.closePath();
+                ctx.strokeStyle = setbackColor;
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([6, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Draw Building Walls / Rooms (White/Grey lines representing CAD block)
+                if (showWalls) {
+                    ctx.strokeStyle = isLight ? '#4b5563' : '#e5e7eb';
+                    ctx.lineWidth = 2;
+
+                    // Main house box inside setbacks (dynamically changes with iteration feedback)
+                    const shiftAmt = Math.min((iterationCount - 1) * 2, 8);
+                    const wStart = [28 + shiftAmt, 28];
+                    const wEnd = [74, 56];
+
+                    ctx.strokeRect(tx(wStart[0]), ty(wEnd[1]), (wEnd[0] - wStart[0]) * scale, (wEnd[1] - wStart[1]) * scale);
+
+                    // Room partitions
+                    const pVertX = 48 + shiftAmt / 2;
+                    ctx.beginPath();
+                    // Partition vertical
+                    ctx.moveTo(tx(pVertX), ty(28));
+                    ctx.lineTo(tx(pVertX), ty(56));
+                    // Partition horizontal
+                    ctx.moveTo(tx(pVertX), ty(42));
+                    ctx.lineTo(tx(74), ty(42));
+                    ctx.stroke();
+
+                    // Room Labels based on Floor query param
+                    ctx.fillStyle = isLight ? '#1f2937' : '#f3f4f6';
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.textAlign = 'center';
+                    
+                    if (activeFloor === '1st') {
+                        ctx.fillText("FAMILY LOUNGE", tx((wStart[0] + pVertX) / 2), ty(42));
+                        ctx.fillText("MASTER SUITE", tx((pVertX + 74) / 2), ty(49));
+                        ctx.fillText("KID'S BED", tx((pVertX + 74) / 2), ty(35));
+                    } else if (activeFloor === '2nd') {
+                        ctx.fillText("STUDY ROOM", tx((wStart[0] + pVertX) / 2), ty(42));
+                        ctx.fillText("HOME THEATER", tx((pVertX + 74) / 2), ty(49));
+                        ctx.fillText("OPEN TERRACE", tx((pVertX + 74) / 2), ty(35));
+                    } else { // 'ground'
+                        ctx.fillText("LIVING ROOM", tx((wStart[0] + pVertX) / 2), ty(42));
+                        ctx.fillText("MASTER BED", tx((pVertX + 74) / 2), ty(49));
+                        ctx.fillText("KITCHEN", tx((pVertX + 74) / 2), ty(35));
+                    }
+                    ctx.textAlign = 'left';
+                }
+
+                // Draw Dimensions (Blue/Cyan lines with ticks)
+                if (showDims) {
+                    ctx.strokeStyle = '#06b6d4'; // Cyan
+                    ctx.fillStyle = '#06b6d4';
+                    ctx.lineWidth = 1;
+
+                    // Plot boundary dimension lines
+                    // Left offset dimension
+                    ctx.beginPath();
+                    ctx.moveTo(tx(15), ty(15));
+                    ctx.lineTo(tx(23), ty(23));
+                    ctx.stroke();
+
+                    ctx.font = '9px monospace';
+                    ctx.fillText("8.0'", tx(18), ty(17));
+
+                    // Front setback dimension
+                    ctx.beginPath();
+                    ctx.moveTo(tx(16), ty(81));
+                    ctx.lineTo(tx(24), ty(71));
+                    ctx.stroke();
+                    ctx.fillText("10.0'", tx(18), ty(76));
+
+                    // Draw tree dimension line
+                    ctx.beginPath();
+                    ctx.moveTo(tx(75), ty(88));
+                    ctx.lineTo(tx(74), ty(56));
+                    ctx.strokeStyle = '#3b82f6'; // Blue for tree exclusion
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = '#3b82f6';
+                    ctx.fillText("Tree clear: 32'", tx(77), ty(72));
+                }
+
+                // Draw Tree Exclusion Zone
+                ctx.beginPath();
+                ctx.arc(tx(75), ty(88), 12 * scale, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(59, 130, 246, 0.08)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)';
+                ctx.lineWidth = 1.2;
+                ctx.setLineDash([4, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.fillStyle = '#3b82f6';
+                ctx.font = '9px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("Tree zone", tx(75), ty(88) + 3);
+                ctx.textAlign = 'left';
+            }
         }
 
         window.addEventListener('resize', resizeCanvas);
