@@ -26,7 +26,8 @@ from flask import (
 from dotenv import load_dotenv
 
 from auth import auth_bp, get_logto_client
-
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib.figure import Figure
 
 from ezdxf.addons.drawing import (
