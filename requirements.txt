@@ -4,3 +4,4 @@ python-dotenv
 requests
 ezdxf==1.4.4
 matplotlib==3.11.0
+supabase==2.31.0

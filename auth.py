@@ -3,12 +3,16 @@ import os
 from flask import Blueprint, session, redirect, url_for, request
 from logto import LogtoClient, LogtoConfig, Storage, UserInfoScope
 from typing import Union
+from supabase import create_client, Client
 
-# Define the blueprint
+# Initialize Supabase
+supabase_url = os.environ.get("SUPABASE_URL", "")
+supabase_key = os.environ.get("SUPABASE_KEY", "")
+supabase: Client = create_client(supabase_url, supabase_key)
+
 auth_bp = Blueprint('auth', __name__)
 
-# Logto needs a persistent storage mechanism to handle the OIDC state.
-# We map it securely to Flask's built-in session storage.
+
 class SessionStorage(Storage):
     def get(self, key: str) -> Union[str, None]:
         return session.get(key, None)
@@ -19,37 +23,82 @@ class SessionStorage(Storage):
     def delete(self, key: str) -> None:
         session.pop(key, None)
 
-# Helper to generate the client dynamically using environment variables
+
 def get_logto_client() -> LogtoClient:
     return LogtoClient(
         LogtoConfig(
             endpoint=os.environ.get('LOGTO_ENDPOINT', ''),
             appId=os.environ.get('LOGTO_APP_ID', ''),
             appSecret=os.environ.get('LOGTO_APP_SECRET', ''),
-            # Explicitly request the email scope from Logto
             scopes=[UserInfoScope.email]
         ),
         storage=SessionStorage()
     )
 
+
 @auth_bp.route("/sign-in")
 async def sign_in():
     client = get_logto_client()
-    # Logto requires an absolute URL to redirect back to after auth
     redirect_uri = url_for('auth.callback', _external=True)
     sign_in_url = await client.signIn(redirectUri=redirect_uri)
     return redirect(sign_in_url)
 
+
 @auth_bp.route("/callback")
 async def callback():
     client = get_logto_client()
-    # Process the tokens returned by Logto
     await client.handleSignInCallback(request.url)
-    return redirect(url_for('home'))
+
+    # Fetch user info to extract email
+    try:
+        user_info = await client.fetchUserInfo()
+
+        # Safely extract dictionary using your existing logic
+        if hasattr(user_info, 'model_dump'):
+            info_dict = user_info.model_dump()
+        elif hasattr(user_info, 'dict'):
+            info_dict = user_info.dict()
+        elif hasattr(user_info, '__dict__'):
+            info_dict = vars(user_info)
+        else:
+            info_dict = user_info if isinstance(user_info, dict) else {}
+
+        email = info_dict.get('email')
+
+        if not email:
+            return "Error: No email provided by identity provider.", 400
+
+        session['user_email'] = email
+
+        # Check Supabase for existing user
+        response = supabase.table("users").select("*").eq("email", email).execute()
+
+        if response.data and len(response.data) > 0:
+            # User exists: populate session and route based on role
+            user_record = response.data[0]
+            role = user_record.get('role')
+            session['user_role'] = role
+
+            if role == 'Architect':
+                return redirect(url_for('dashboard'))
+            else:
+                return redirect(url_for('in_progress'))
+        else:
+            # New user: direct them to complete profile
+            return redirect(url_for('complete_profile'))
+
+    except Exception as e:
+        print(f"Auth callback error: {e}")
+        return redirect(url_for('home'))
+
 
 @auth_bp.route("/sign-out")
 async def sign_out():
     client = get_logto_client()
+    # Clear custom session data
+    session.pop('user_email', None)
+    session.pop('user_role', None)
+
     redirect_uri = url_for('home', _external=True)
     sign_out_url = await client.signOut(postLogoutRedirectUri=redirect_uri)
     return redirect(sign_out_url)

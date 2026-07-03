@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete Your Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <div style="max-width: 400px; margin: 100px auto; text-align: center;">
+        <h2>Welcome! Complete your setup</h2>
+        <p>Email: {{ email }}</p>
+
+        <form method="POST" action="{{ url_for('complete_profile') }}" style="display: flex; flex-direction: column; gap: 15px;">
+            <input type="text" name="full_name" placeholder="Full Name" required style="padding: 10px;">
+
+            <select name="role" required style="padding: 10px;">
+                <option value="" disabled selected>Select your role</option>
+                <option value="Architect">Architect</option>
+                <option value="User">User</option>
+                <option value="Verifier">Verifier</option>
+            </select>
+
+            <button type="submit" style="padding: 10px; background: black; color: white; border: none; cursor: pointer;">
+                Finish Setup
+            </button>
+        </form>
+    </div>
+</body>
+</html>

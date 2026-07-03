@@ -3,10 +3,11 @@ import os
 
 # 1. FIX EZDXF CACHE: Redirect ezdxf's cache to Vercel's writable /tmp directory
 # MUST be set before importing ezdxf!
+from dotenv import load_dotenv
+load_dotenv()
 os.environ["EZDXF_CACHE_DIR"] = "/tmp"
 
 from flask import Flask, render_template, redirect, url_for, jsonify, request, send_file, session
-from dotenv import load_dotenv
 import requests
 import base64
 import tempfile
@@ -30,13 +31,15 @@ from ezdxf.addons.drawing import (
 from ezdxf.addons.drawing.matplotlib import (
     MatplotlibBackend
 )
+from supabase import create_client, Client
 
-load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret")
 app.register_blueprint(auth_bp, url_prefix="/auth")
-
+supabase_url = os.environ.get("SUPABASE_URL", "")
+supabase_key = os.environ.get("SUPABASE_KEY", "")
+supabase: Client = create_client(supabase_url, supabase_key)
 # 3. APPLY FONT FIX
 # Make sure you have a .ttf file in your static folder!
 font_path = os.path.join(os.path.dirname(__file__), 'static', 'OpenSans-Regular.ttf')
@@ -67,7 +70,11 @@ async def dashboard():
     client = get_logto_client()
     if not client.isAuthenticated():
         return redirect(url_for('home'))
-
+    role = session.get('user_role')
+    if not role:
+        return redirect(url_for('complete_profile'))
+    if role != 'Architect':
+        return redirect(url_for('in_progress'))
     # Safely extract Logto user info to ensure Jinja can render it
     user_data = {"name": "Architect", "email": "No email provided"}
     try:
@@ -96,7 +103,11 @@ async def project_dashboard():
     client = get_logto_client()
     if not client.isAuthenticated():
         return redirect(url_for('home'))
-
+    role = session.get('user_role')
+    if not role:
+        return redirect(url_for('complete_profile'))
+    if role != 'Architect':
+        return redirect(url_for('in_progress'))
     user_data = {"name": "Architect", "email": "No email provided"}
     try:
         user_info = await client.fetchUserInfo()
@@ -132,7 +143,11 @@ async def studio():
     client = get_logto_client()
     if not client.isAuthenticated():
         return redirect(url_for('home'))
-
+    role = session.get('user_role')
+    if not role:
+        return redirect(url_for('complete_profile'))
+    if role != 'Architect':
+        return redirect(url_for('in_progress'))
     user_data = {"name": "Architect", "email": "No email provided"}
     try:
         user_info = await client.fetchUserInfo()
@@ -160,7 +175,11 @@ async def iteration():
     client = get_logto_client()
     if not client.isAuthenticated():
         return redirect(url_for('home'))
-
+    role = session.get('user_role')
+    if not role:
+        return redirect(url_for('complete_profile'))
+    if role != 'Architect':
+        return redirect(url_for('in_progress'))
     user_data = {"name": "Architect", "email": "No email provided"}
     try:
         user_info = await client.fetchUserInfo()
@@ -216,7 +235,11 @@ async def multifloor():
 
     if not client.isAuthenticated():
         return redirect(url_for('home'))
-
+    role = session.get('user_role')
+    if not role:
+        return redirect(url_for('complete_profile'))
+    if role != 'Architect':
+        return redirect(url_for('in_progress'))
     return render_template('multifloor.html')
 
 @app.route('/api/multifloor-image', methods=['POST'])
@@ -292,5 +315,45 @@ def multifloor_dxf():
     )
 
 
+@app.route('/complete-profile', methods=['GET', 'POST'])
+async def complete_profile():
+    client = get_logto_client()
+    if not client.isAuthenticated():
+        return redirect(url_for('home'))
+
+    email = session.get('user_email')
+
+    if request.method == 'POST':
+        full_name = request.form.get('full_name')
+        role = request.form.get('role')
+
+        # Insert new user profile into Supabase
+        supabase.table("users").upsert({
+            "email": email,
+            "full_name": full_name,
+            "role": role
+        }).execute()
+
+        session['user_role'] = role
+
+        if role == 'Architect':
+            return redirect(url_for('dashboard'))
+        else:
+            return redirect(url_for('in_progress'))
+
+    return render_template('complete_profile.html', email=email)
+
+
+@app.route('/in-progress')
+async def in_progress():
+    client = get_logto_client()
+    if not client.isAuthenticated():
+        return redirect(url_for('home'))
+
+    # Optional: ensure architects aren't accidentally trapped here
+    if session.get('user_role') == 'Architect':
+        return redirect(url_for('dashboard'))
+
+    return render_template('in_progress.html')
 if __name__ == '__main__':
     app.run(debug=True)
