@@ -5,7 +5,7 @@ import os
 # MUST be set before importing ezdxf!
 os.environ["EZDXF_CACHE_DIR"] = "/tmp"
 
-from flask import Flask, render_template, redirect, url_for, jsonify, request, send_file
+from flask import Flask, render_template, redirect, url_for, jsonify, request, send_file, session
 from dotenv import load_dotenv
 import requests
 import base64
@@ -89,6 +89,42 @@ async def dashboard():
         print(f"Failed to fetch user info: {e}")
 
     return render_template('dashboard.html', user=user_data)
+
+
+@app.route('/project-dashboard')
+async def project_dashboard():
+    client = get_logto_client()
+    if not client.isAuthenticated():
+        return redirect(url_for('home'))
+
+    user_data = {"name": "Architect", "email": "No email provided"}
+    try:
+        user_info = await client.fetchUserInfo()
+        if hasattr(user_info, 'model_dump'):
+            info_dict = user_info.model_dump()
+        elif hasattr(user_info, 'dict'):
+            info_dict = user_info.dict()
+        elif hasattr(user_info, '__dict__'):
+            info_dict = vars(user_info)
+        else:
+            info_dict = user_info if isinstance(user_info, dict) else {}
+
+        user_data["name"] = info_dict.get('name') or info_dict.get('username') or 'Architect'
+        user_data["email"] = info_dict.get('email', 'No email provided')
+    except Exception as e:
+        print(f"Failed to fetch user info: {e}")
+
+    return render_template('project_dashboard.html', user=user_data)
+
+
+@app.route('/api/select-project', methods=['POST'])
+def select_project():
+    data = request.json or {}
+    session['project_name'] = data.get('name', 'My Project')
+    session['project_address'] = data.get('address', 'Unknown Address')
+    return jsonify({"status": "success"})
+
+
 
 
 @app.route('/studio')

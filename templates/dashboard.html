@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlotMySpace - Main Dashboard</title>
+    <title>PlotMySpace - Project Portal</title>
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script>
@@ -107,73 +107,19 @@
         #stars { opacity: 0; }
         #toggle:checked + svg #stars { opacity: 1; }
 
-        /* Uiverse button styles */
-        .uiverse-btn {
-          margin: 0;
-          height: auto;
-          background: transparent;
-          padding: 0;
-          border: none;
-          cursor: pointer;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          width: 100%;
-          --border-right: 6px;
-          --text-stroke-color: rgba(255, 255, 255, 0.4);
-          --animation-color: #37FF8B;
-          --fs-size: 1.3rem;
-          letter-spacing: 3px;
-          text-decoration: none;
-          font-size: var(--fs-size);
-          font-family: "Inter", sans-serif;
-          position: relative;
-          text-transform: uppercase;
-          color: transparent;
-          -webkit-text-stroke: 1px var(--text-stroke-color);
-        }
-
-        html.light .uiverse-btn {
-          --text-stroke-color: rgba(17, 24, 39, 0.3);
-          --animation-color: #5B3DF5;
-        }
-
-        .uiverse-btn .actual-text { padding: 10px 0; }
-
-        .hover-text {
-          position: absolute;
-          box-sizing: border-box;
-          content: attr(data-text);
-          color: var(--animation-color);
-          width: 0%;
-          inset: 0;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          border-right: var(--border-right) solid var(--animation-color);
-          overflow: hidden;
-          transition: 0.5s;
-          -webkit-text-stroke: 1px var(--animation-color);
-        }
-
-        .uiverse-btn:hover .hover-text {
-          width: 100%;
-          filter: drop-shadow(0 0 23px var(--animation-color));
-        }
-
-        /* Glassmorphism pane card */
-        .pane-card {
+        /* Portal Pane Cards */
+        .portal-card {
             background-color: var(--bg-panel);
             border: 1px solid var(--border-color);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .pane-card:hover {
-            transform: translateY(-4px);
-            border-color: #6366f1; /* purple hover border */
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        .portal-card:hover {
+            transform: translateY(-8px);
+            border-color: #6366f1; /* Purple focus on hover */
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4);
         }
-        html.light .pane-card:hover {
-            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.15);
+        html.light .portal-card:hover {
+            box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.15);
         }
     </style>
 </head>
@@ -185,14 +131,7 @@
             <div class="flex items-center gap-2 text-indigo-500 font-bold text-lg cursor-pointer" onclick="window.location.href='/dashboard'">
                 <span>⌂</span><span>PlotMySpace</span>
             </div>
-            <ul class="flex items-center gap-2">
-                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100" onclick="window.location.href='/studio'">
-                    <span>⛶</span> Studio Workspace
-                </li>
-                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100" onclick="window.location.href='/iteration'">
-                    <span>▦</span> Pitch & Pack
-                </li>
-            </ul>
+            <span class="text-xs text-zinc-500 uppercase tracking-widest border border-[#2e2e33] px-2 py-0.5 rounded">Portal</span>
         </div>
 
         <div class="flex items-center gap-4">
@@ -239,130 +178,95 @@
         </div>
     </nav>
 
-    <!-- Main Body Workspace -->
-    <main class="flex-1 p-8 overflow-y-auto flex flex-col items-center justify-between">
-        <!-- Dashboard Header -->
-        <div class="w-full max-w-6xl text-center mb-4 mt-2">
-            <h1 class="text-3xl font-extrabold tracking-tight text-white mb-2">Welcome to Project Workspace</h1>
-            <p class="text-sm text-zinc-400">Select any layout pane to inspect properties, or launch the building studio below.</p>
+    <!-- Main Portal View -->
+    <main class="flex-1 p-12 overflow-y-auto flex flex-col items-center justify-center">
+        
+        <!-- Welcome Header -->
+        <div class="w-full max-w-4xl text-center mb-12">
+            <h1 class="text-4xl font-extrabold tracking-tight text-white mb-3">Welcome to PlotMySpace</h1>
+            <p class="text-base text-zinc-400">Launch a new custom building project or explore neighborhood market metrics.</p>
         </div>
 
-        <!-- 5-Pane Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 w-full max-w-6xl mb-6">
+        <!-- Two-Pane Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
             
-            <!-- Site Plan -->
-            <div onclick="window.location.href='/studio'" class="pane-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer h-[220px]">
+            <!-- Left Pane: Building Studio -->
+            <div id="btnBuildingCard" class="portal-card rounded-3xl p-8 flex flex-col justify-between cursor-pointer min-h-[320px]">
                 <div>
-                    <div class="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center mb-4 text-xl">
-                        <span>⛶</span>
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-600/10 text-indigo-400 flex items-center justify-center mb-6 text-2xl font-bold border border-indigo-500/20">
+                        <span>🏠</span>
                     </div>
-                    <h3 class="text-base font-bold text-zinc-100 mb-2">Site Plan</h3>
-                    <p class="text-xs text-zinc-400 leading-relaxed">Define boundary lines, setbacks, and tree zones.</p>
+                    <h2 class="text-2xl font-extrabold text-zinc-100 mb-3">Building Studio</h2>
+                    <p class="text-sm text-zinc-400 leading-relaxed">
+                        Create layout designs, check municipal setbacks, run multi-floor planners, and generate compliance blueprints.
+                    </p>
                 </div>
-                <div class="flex items-center justify-between text-[11px] font-medium text-red-400 mt-2">
-                    <span>Boundary & Plot</span>
+                <div class="flex items-center gap-2 text-indigo-400 text-sm font-semibold mt-4">
+                    <span>Create Project</span>
                     <span>→</span>
                 </div>
             </div>
 
-            <!-- Floor Plan -->
-            <div id="btnFloorPlanCard" class="pane-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer h-[220px]">
+            <!-- Right Pane: Market Analysis -->
+            <div id="btnMarketAnalysisCard" class="portal-card rounded-3xl p-8 flex flex-col justify-between cursor-pointer min-h-[320px] opacity-75 hover:opacity-100">
                 <div>
-                    <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4 text-xl">
-                        <span>☷</span>
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-600/10 text-emerald-400 flex items-center justify-center mb-6 text-2xl font-bold border border-emerald-500/20">
+                        <span>📈</span>
                     </div>
-                    <h3 class="text-base font-bold text-zinc-100 mb-2">Floor Plan</h3>
-                    <p class="text-xs text-zinc-400 leading-relaxed">Arrange and review internal rooms across multiple levels.</p>
+                    <h2 class="text-2xl font-extrabold text-zinc-100 mb-3">Market Analysis</h2>
+                    <p class="text-sm text-zinc-400 leading-relaxed">
+                        Explore suburban stats, check local property values, evaluate neighborhood safety ranks, and calculate cost estimates.
+                    </p>
                 </div>
-                <div class="flex items-center justify-between text-[11px] font-medium text-indigo-400 mt-2">
-                    <span>Interactive Rooms</span>
-                    <span>→</span>
-                </div>
-            </div>
-
-            <!-- Side Views -->
-            <div onclick="window.location.href='/iteration?view=side'" class="pane-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer h-[220px]">
-                <div>
-                    <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4 text-xl">
-                        <span>⛃</span>
-                    </div>
-                    <h3 class="text-base font-bold text-zinc-100 mb-2">Side Views</h3>
-                    <p class="text-xs text-zinc-400 leading-relaxed">Examine external elevation facades matching contours.</p>
-                </div>
-                <div class="flex items-center justify-between text-[11px] font-medium text-emerald-400 mt-2">
-                    <span>2D Facades</span>
-                    <span>→</span>
-                </div>
-            </div>
-
-            <!-- Roof Plan -->
-            <div onclick="window.location.href='/iteration?view=roof'" class="pane-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer h-[220px]">
-                <div>
-                    <div class="w-10 h-10 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4 text-xl">
-                        <span>⏏</span>
-                    </div>
-                    <h3 class="text-base font-bold text-zinc-100 mb-2">Roof Plan</h3>
-                    <p class="text-xs text-zinc-400 leading-relaxed">Configure pitch, drainage directions, and fire lines.</p>
-                </div>
-                <div class="flex items-center justify-between text-[11px] font-medium text-cyan-400 mt-2">
-                    <span>Pitch & Drainage</span>
-                    <span>→</span>
-                </div>
-            </div>
-
-            <!-- Report Generated -->
-            <div onclick="window.location.href='/iteration?view=report'" class="pane-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer h-[220px]">
-                <div>
-                    <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center mb-4 text-xl">
-                        <span>📄</span>
-                    </div>
-                    <h3 class="text-base font-bold text-zinc-100 mb-2">Report Generated</h3>
-                    <p class="text-xs text-zinc-400 leading-relaxed">View permitting-grade PDF reports and calculations.</p>
-                </div>
-                <div class="flex items-center justify-between text-[11px] font-medium text-amber-500 mt-2">
-                    <span>Permit Package</span>
+                <div class="flex items-center gap-2 text-emerald-400 text-sm font-semibold mt-4">
+                    <span>Explore Suburbs (Coming Soon)</span>
                     <span>→</span>
                 </div>
             </div>
 
         </div>
 
-        <!-- Start Building Action Button -->
-        <div class="w-full max-w-xl flex flex-col items-center border-t border-[#2e2e33]/40 pt-6 pb-6">
-            <button onclick="window.location.href='/studio'" class="uiverse-btn max-w-sm mb-3" data-text="Start Building">
-                <span class="actual-text">&nbsp;Start Building&nbsp;</span>
-                <span class="hover-text" aria-hidden="true">&nbsp;Start Building&nbsp;</span>
-            </button>
-            <p class="text-[11px] text-zinc-500">Launches the Studio boundary tool to generate legal envelopes.</p>
-        </div>
     </main>
 
-    <!-- Floor Plan Selector Modal -->
-    <div id="floorModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center transition-all duration-300">
-        <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-2xl p-6 w-[360px] shadow-2xl flex flex-col items-center text-center transform scale-95 opacity-0 transition-all duration-300" id="floorModalContent">
-            <div class="w-12 h-12 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4 text-xl">
-                <span>☷</span>
-            </div>
-            <h3 class="text-lg font-bold text-white mb-1">Select Floor Layout</h3>
-            <p class="text-xs text-zinc-400 mb-6">Choose a level to load in the drawing viewer:</p>
+    <!-- Add Project Modal -->
+    <div id="projectModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center transition-all duration-300">
+        <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-2xl p-6 w-[400px] shadow-2xl flex flex-col transform scale-95 opacity-0 transition-all duration-300" id="projectModalContent">
             
-            <div class="flex flex-col gap-3 w-full mb-4">
-                <a href="/multifloor?floor=ground" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2">
-                    <span>⌂</span> Ground Floor
-                </a>
-                <a href="/multifloor?floor=1st" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2">
-                    <span>🏢</span> 1st Floor
-                </a>
-                <a href="/multifloor?floor=2nd" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2">
-                    <span>🛪</span> 2nd Floor
-                </a>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-lg">
+                    <span>🏠</span>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white leading-tight">Create New Project</h3>
+                    <p class="text-xs text-zinc-500">Add name & location properties</p>
+                </div>
             </div>
-            
-            <button id="btnCloseFloorModal" class="w-full py-2 bg-[#2e2e33] hover:bg-[#3f3f46] text-zinc-300 rounded-lg transition-colors text-xs font-medium border border-[#3f3f46]">Cancel</button>
+
+            <form id="projectForm" class="space-y-4">
+                <div>
+                    <label for="projectName" class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Project Name</label>
+                    <input type="text" id="projectName" placeholder="e.g. Sunset Villa, Redmond Lodge" class="w-full bg-[#0e0e10] border border-[#2e2e33] focus:border-indigo-500 rounded-lg px-3 py-2 text-sm text-zinc-100 outline-none transition-colors" required>
+                </div>
+                
+                <div>
+                    <label for="projectAddress" class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Location Address</label>
+                    <input type="text" id="projectAddress" placeholder="e.g. 123 Main St, Seattle, WA" class="w-full bg-[#0e0e10] border border-[#2e2e33] focus:border-indigo-500 rounded-lg px-3 py-2 text-sm text-zinc-100 outline-none transition-colors" required>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" id="btnCancelModal" class="px-4 py-2 bg-[#2e2e33] hover:bg-[#3f3f46] text-zinc-300 rounded-lg transition-colors text-sm font-medium border border-[#3f3f46]">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors text-sm font-medium">
+                        Create Studio Workspace
+                    </button>
+                </div>
+            </form>
+
         </div>
     </div>
 
-    <!-- Theme and Modal Javascript -->
-    <script src="{{ url_for('static', filename='js/main_dashboard.js') }}"></script>
+    <!-- Script asset for page toggles and Ajax request -->
+    <script src="{{ url_for('static', filename='js/portal.js') }}"></script>
 </body>
 </html>
