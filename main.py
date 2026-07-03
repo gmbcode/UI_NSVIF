@@ -70,31 +70,34 @@ async def dashboard():
     client = get_logto_client()
     if not client.isAuthenticated():
         return redirect(url_for('home'))
+
+    # --- ROLE CHECK START ---
     role = session.get('user_role')
+    email = session.get('user_email')
+
     if not role:
         return redirect(url_for('complete_profile'))
     if role != 'Architect':
         return redirect(url_for('in_progress'))
-    # Safely extract Logto user info to ensure Jinja can render it
-    user_data = {"name": "Architect", "email": "No email provided"}
-    try:
-        user_info = await client.fetchUserInfo()
+    # --- ROLE CHECK END ---
 
-        # Extract dictionary from Logto UserInfoResponse Object
-        if hasattr(user_info, 'model_dump'):
-            info_dict = user_info.model_dump()
-        elif hasattr(user_info, 'dict'):
-            info_dict = user_info.dict()
-        elif hasattr(user_info, '__dict__'):
-            info_dict = vars(user_info)
-        else:
-            info_dict = user_info if isinstance(user_info, dict) else {}
+    # Initialize default user data
+    user_data = {
+        "name": "Architect",
+        "email": email or "No email provided"
+    }
 
-        user_data["name"] = info_dict.get('name') or info_dict.get('username') or 'Architect'
-        user_data["email"] = info_dict.get('email', 'No email provided')
-    except Exception as e:
-        print(f"Failed to fetch user info: {e}")
+    # Fetch the actual full_name from Supabase
+    if email:
+        try:
+            response = supabase.table("users").select("full_name").eq("email", email).execute()
+            if response.data and len(response.data) > 0:
+                # Overwrite the default name with the Supabase full_name
+                user_data["name"] = response.data[0].get("full_name", "Architect")
+        except Exception as e:
+            print(f"Failed to fetch user from Supabase: {e}")
 
+    # The template will now render {{ user.name }} using the Supabase data
     return render_template('dashboard.html', user=user_data)
 
 
