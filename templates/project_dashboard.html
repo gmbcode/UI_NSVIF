@@ -192,6 +192,15 @@
                 <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100" onclick="window.location.href='/iteration'">
                     <span>▦</span> Pitch & Pack
                 </li>
+                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100" onclick="window.location.href='/iteration?view=window'">
+                    <span>🪟</span> Window Plan
+                </li>
+                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100" onclick="window.location.href='/iteration?view=roof'">
+                    <span>⏏</span> Roof Plan
+                </li>
+                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100" onclick="window.location.href='/outside-view'">
+                    <span>🖼️</span> Outside View
+                </li>
             </ul>
         </div>
 
@@ -250,8 +259,8 @@
             </button>
         </div>
 
-        <!-- 5-Pane Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 w-full max-w-6xl mb-6">
+        <!-- 6-Pane Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 w-full max-w-[85rem] mb-6">
             
             <!-- Site Plan -->
             <div onclick="window.location.href='/studio'" class="pane-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer h-[220px]">
@@ -283,17 +292,17 @@
                 </div>
             </div>
 
-            <!-- Side Views -->
-            <div onclick="window.location.href='/iteration?view=side'" class="pane-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer h-[220px]">
+            <!-- Window Plan -->
+            <div onclick="window.location.href='/iteration?view=window'" class="pane-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer h-[220px]">
                 <div>
-                    <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4 text-xl">
-                        <span>⛃</span>
+                    <div class="w-10 h-10 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center mb-4 text-xl">
+                        <span>🪟</span>
                     </div>
-                    <h3 class="text-base font-bold text-zinc-100 mb-2">Side Views</h3>
-                    <p class="text-xs text-zinc-400 leading-relaxed">Examine external elevation facades matching contours.</p>
+                    <h3 class="text-base font-bold text-zinc-100 mb-2">Window Plan</h3>
+                    <p class="text-xs text-zinc-400 leading-relaxed">Inspect window placements, dimensions, and daylight metrics.</p>
                 </div>
-                <div class="flex items-center justify-between text-[11px] font-medium text-emerald-400 mt-2">
-                    <span>2D Facades</span>
+                <div class="flex items-center justify-between text-[11px] font-medium text-pink-400 mt-2">
+                    <span>Glazing Layout</span>
                     <span>→</span>
                 </div>
             </div>
@@ -309,6 +318,21 @@
                 </div>
                 <div class="flex items-center justify-between text-[11px] font-medium text-cyan-400 mt-2">
                     <span>Pitch & Drainage</span>
+                    <span>→</span>
+                </div>
+            </div>
+
+            <!-- Multi View -->
+            <div onclick="window.location.href='/iteration?view=side'" class="pane-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer h-[220px]">
+                <div>
+                    <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4 text-xl">
+                        <span>⛃</span>
+                    </div>
+                    <h3 class="text-base font-bold text-zinc-100 mb-2">Multi View</h3>
+                    <p class="text-xs text-zinc-400 leading-relaxed">Examine external elevation facades matching contours.</p>
+                </div>
+                <div class="flex items-center justify-between text-[11px] font-medium text-emerald-400 mt-2">
+                    <span>2D Facades</span>
                     <span>→</span>
                 </div>
             </div>

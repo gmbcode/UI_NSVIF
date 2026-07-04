@@ -316,6 +316,17 @@ def multifloor_dxf():
         as_attachment=True,
         download_name="multifloor.dxf"
     )
+@app.route('/outside-view')
+async def outside_view():
+    client = get_logto_client()
+    if not client.isAuthenticated():
+        return redirect(url_for('home'))
+    role = session.get('user_role')
+    if not role:
+        return redirect(url_for('complete_profile'))
+    if role != 'Architect':
+        return redirect(url_for('in_progress'))
+    return render_template('outside_view.html')
 
 
 @app.route('/complete-profile', methods=['GET', 'POST'])

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlotMySpace - Outside View</title>
+    
+    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+        } else {
+            document.documentElement.classList.remove('light');
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    
+    <style>
+        :root {
+            --bg-page: #0e0e10;
+            --bg-panel: #1c1c1f;
+            --bg-inner: #18181b;
+            --text-primary: #f0f0f2;
+            --text-secondary: #a1a1aa;
+            --border-color: #2e2e33;
+        }
+        
+        html.light {
+            --bg-page: #FFFFFF;
+            --bg-panel: #F9FAFB;
+            --bg-inner: #FFFFFF;
+            --text-primary: #374151;
+            --text-secondary: #6B7280;
+            --border-color: #E5E7EB;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-page);
+            color: var(--text-primary);
+        }
+
+        /* Glassmorphism base for panes */
+        .grid-pane {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .grid-pane:hover {
+            transform: translateY(-4px);
+            border-color: #6366f1;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Expanded Mode Styles */
+        .grid-pane.expanded {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90vw;
+            height: 85vh;
+            z-index: 100;
+            cursor: default;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        #backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 90;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        #backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: none;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-primary);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: background-color 0.2s;
+        }
+
+        .close-btn:hover {
+            background-color: rgba(239, 68, 68, 0.8);
+            color: white;
+        }
+
+        .grid-pane.expanded .close-btn {
+            display: flex;
+        }
+        
+        .grid-pane.expanded:hover {
+            transform: translate(-50%, -50%); /* Disable float on hover when expanded */
+            border-color: var(--border-color);
+        }
+
+        /* Placeholder Content Styling */
+        .pane-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+            transition: transform 0.4s ease;
+        }
+        
+        .grid-pane.expanded .pane-icon {
+            font-size: 6rem;
+            transform: scale(1.1);
+        }
+
+        .pane-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            transition: font-size 0.4s ease;
+        }
+
+        .grid-pane.expanded .pane-title {
+            font-size: 2rem;
+        }
+
+        .pane-desc {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            text-align: center;
+            padding: 0 1.5rem;
+            display: none;
+        }
+
+        .grid-pane.expanded .pane-desc {
+            display: block;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin-top: 1.5rem;
+        }
+
+        /* Uiverse.io theme switch styles */
+        #theme-toggle-button {
+          font-size: 11px;
+          position: relative;
+          display: flex;
+          align-items: center;
+          width: 7em;
+          cursor: pointer;
+        }
+
+        #toggle {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+
+        #container,
+        #patches,
+        #stars,
+        #button,
+        #sun,
+        #moon,
+        #cloud {
+          transition-property: all;
+          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+          transition-duration: 0.25s;
+        }
+
+        #toggle:checked + svg #container {
+          fill: #2b4360;
+        }
+
+        #toggle:checked + svg #button {
+          transform: translate(28px, 2.333px);
+        }
+
+        #sun { opacity: 1; }
+        #toggle:checked + svg #sun { opacity: 0; }
+        #moon { opacity: 0; }
+        #toggle:checked + svg #moon { opacity: 1; }
+        #cloud { opacity: 1; }
+        #toggle:checked + svg #cloud { opacity: 0; }
+        #stars { opacity: 0; }
+        #toggle:checked + svg #stars { opacity: 1; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Navbar -->
+    <nav class="h-16 shrink-0 border-b border-[#2e2e33] bg-[#0e0e10] flex items-center justify-between px-6 z-50">
+        <div class="flex items-center gap-8">
+            <div class="flex items-center gap-2 text-indigo-500 font-bold text-lg cursor-pointer" onclick="window.location.href='/dashboard'">
+                <span>⌂</span><span>PlotMySpace</span>
+            </div>
+            <ul class="flex items-center gap-2">
+                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100" onclick="window.location.href='/studio'">
+                    <span>⛶</span> Studio Workspace
+                </li>
+                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100" onclick="window.location.href='/iteration'">
+                    <span>▦</span> Pitch & Pack
+                </li>
+                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100" onclick="window.location.href='/iteration?view=window'">
+                    <span>🪟</span> Window Plan
+                </li>
+                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100" onclick="window.location.href='/iteration?view=roof'">
+                    <span>⏏</span> Roof Plan
+                </li>
+                <li class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium text-sm cursor-pointer">
+                    <span>🖼️</span> Outside View
+                </li>
+            </ul>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3 border-r border-[#2e2e33] pr-4">
+                <!-- Theme Toggle Switch -->
+                <label id="theme-toggle-button" class="mr-3" title="Toggle Light/Dark Mode">
+                    <input type="checkbox" id="toggle">
+                    <svg viewBox="0 0 69 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-[7em]">
+                        <rect id="container" width="69" height="28" rx="14" fill="#B3C7D6"/>
+                        <g id="stars" opacity="0">
+                            <circle cx="20" cy="8" r="0.7" fill="white" />
+                            <circle cx="15" cy="18" r="0.5" fill="white" />
+                            <circle cx="25" cy="20" r="0.6" fill="white" />
+                            <circle cx="35" cy="10" r="0.8" fill="white" opacity="0.8" />
+                        </g>
+                        <g id="cloud" opacity="1">
+                            <path d="M50 20a3.5 3.5 0 0 1 3.5-3.5 3.5 3.5 0 0 1 3.2 2.1 3 3 0 0 1 .8-.1 3 3 0 0 1 3 3 3 3 0 0 1-3 3H50a3.5 3.5 0 0 1 0-7" fill="white" opacity="0.9" />
+                        </g>
+                        <g id="button">
+                            <circle cx="14" cy="14" r="10" fill="#FFE555" />
+                            <g id="sun" opacity="1">
+                                <circle cx="14" cy="14" r="11.5" stroke="#FFE555" stroke-width="1.5" stroke-dasharray="3 2" />
+                            </g>
+                            <g id="moon" opacity="0">
+                                <circle cx="14" cy="14" r="10" fill="#D2D6DC" />
+                                <g id="patches">
+                                    <circle cx="10" cy="11" r="1.5" fill="#9BA3AF" />
+                                    <circle cx="15" cy="17" r="1" fill="#9BA3AF" />
+                                    <circle cx="17" cy="11" r="1.8" fill="#9BA3AF" />
+                                </g>
+                            </g>
+                        </g>
+                    </svg>
+                </label>
+            </div>
+            <button onclick="window.location.href='/project-dashboard'" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-1">
+                ← Back to Dashboard
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 overflow-auto p-6 relative">
+        <div id="backdrop" onclick="closeExpanded()"></div>
+        
+        <div class="w-full max-w-[85rem] mx-auto h-full grid grid-cols-3 grid-rows-3 gap-6 pb-12">
+            
+            <!-- Pane 1 -->
+            <div class="grid-pane" onclick="expandPane(this)">
+                <button class="close-btn" onclick="event.stopPropagation(); closeExpanded();">✕</button>
+                <div class="pane-icon">🏡</div>
+                <div class="pane-title">Front Elevation</div>
+                <div class="pane-desc">A detailed look at the front facade, highlighting the primary entrance and street-facing architectural elements.</div>
+            </div>
+
+            <!-- Pane 2 -->
+            <div class="grid-pane" onclick="expandPane(this)">
+                <button class="close-btn" onclick="event.stopPropagation(); closeExpanded();">🌳</button>
+                <div class="pane-icon">🌳</div>
+                <div class="pane-title">Backyard View</div>
+                <div class="pane-desc">Perspective from the rear property line, showcasing landscaping zones and rear patios.</div>
+            </div>
+
+            <!-- Pane 3 -->
+            <div class="grid-pane" onclick="expandPane(this)">
+                <button class="close-btn" onclick="event.stopPropagation(); closeExpanded();">✕</button>
+                <div class="pane-icon">🌇</div>
+                <div class="pane-title">Left Profile</div>
+                <div class="pane-desc">Side elevation view displaying window alignments, roof slopes, and exterior wall finishes.</div>
+            </div>
+
+            <!-- Pane 4 -->
+            <div class="grid-pane" onclick="expandPane(this)">
+                <button class="close-btn" onclick="event.stopPropagation(); closeExpanded();">✕</button>
+                <div class="pane-title">Right Profile</div>
+                <div class="pane-desc">Side elevation view from the right neighbor's boundary, including setbacks and utility entry points.</div>
+            </div>
+
+            <!-- Pane 5 -->
+            <div class="grid-pane" onclick="expandPane(this)">
+                <button class="close-btn" onclick="event.stopPropagation(); closeExpanded();">✕</button>
+                <div class="pane-icon">🚁</div>
+                <div class="pane-title">Aerial View</div>
+                <div class="pane-desc">A top-down bird's-eye perspective of the entire lot, contextualizing the footprint against the property boundaries.</div>
+            </div>
+
+            <!-- Pane 6 -->
+            <div class="grid-pane" onclick="expandPane(this)">
+                <button class="close-btn" onclick="event.stopPropagation(); closeExpanded();">✕</button>
+                <div class="pane-icon">🔍</div>
+                <div class="pane-title">Material Detail</div>
+                <div class="pane-desc">Close-up view emphasizing the texture of the exterior cladding, masonry work, and roofing materials.</div>
+            </div>
+
+            <!-- Pane 7 -->
+            <div class="grid-pane" onclick="expandPane(this)">
+                <button class="close-btn" onclick="event.stopPropagation(); closeExpanded();">✕</button>
+                <div class="pane-icon">🌙</div>
+                <div class="pane-title">Night Render</div>
+                <div class="pane-desc">Simulated view of the exterior at night, displaying external lighting and interior glow through windows.</div>
+            </div>
+
+            <!-- Pane 8 -->
+            <div class="grid-pane" onclick="expandPane(this)">
+                <button class="close-btn" onclick="event.stopPropagation(); closeExpanded();">✕</button>
+                <div class="pane-icon">☀️</div>
+                <div class="pane-title">Solar Study</div>
+                <div class="pane-desc">Visualization of shadows and direct sunlight patterns cast upon the structure throughout the day.</div>
+            </div>
+
+            <!-- Pane 9 -->
+            <div class="grid-pane" onclick="expandPane(this)">
+                <button class="close-btn" onclick="event.stopPropagation(); closeExpanded();">✕</button>
+                <div class="pane-icon">📐</div>
+                <div class="pane-title">Section Cut</div>
+                <div class="pane-desc">A 3D slice through the exterior revealing the structural envelope, insulation layers, and wall thicknesses.</div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Interactive JS -->
+    <script>
+        // 1. Theme switching logic
+        const toggleCheckbox = document.getElementById('toggle');
+        if (toggleCheckbox) {
+            toggleCheckbox.checked = !document.documentElement.classList.contains('light');
+            toggleCheckbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    document.documentElement.classList.remove('light');
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+        }
+
+        // 2. Expand logic
+        let currentlyExpanded = null;
+
+        function expandPane(paneElement) {
+            // If clicking a pane that is already expanded, ignore or close it
+            if (paneElement.classList.contains('expanded')) return;
+            
+            // Close any currently expanded pane
+            closeExpanded();
+
+            currentlyExpanded = paneElement;
+            currentlyExpanded.classList.add('expanded');
+            
+            const backdrop = document.getElementById('backdrop');
+            backdrop.classList.add('active');
+        }
+
+        function closeExpanded() {
+            if (currentlyExpanded) {
+                currentlyExpanded.classList.remove('expanded');
+                currentlyExpanded = null;
+            }
+            
+            const backdrop = document.getElementById('backdrop');
+            backdrop.classList.remove('active');
+        }
+
+        // Close when pressing Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeExpanded();
+        });
+    </script>
+</body>
+</html>
