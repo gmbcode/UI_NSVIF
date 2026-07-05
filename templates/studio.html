@@ -319,10 +319,16 @@
             <div class="lg:col-span-3 bg-[#1c1c1f] border border-[#2e2e33] rounded-xl flex flex-col overflow-hidden h-full">
                 <div class="p-4 border-b border-[#2e2e33] bg-[#18181b]">
                     <h3 class="text-sm font-semibold flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        <span id="plannerIndicator"
+                              class="w-2 h-2 rounded-full bg-green-500 animate-pulse">
+                        </span>
                         Planning Agent
                     </h3>
-                    <p class="text-[11px] text-zinc-400 mt-1">Human-in-the-loop brief generator</p>
+
+                    <p id="plannerStatus"
+                       class="text-[11px] text-zinc-400 mt-1">
+                       Initializing...
+                    </p>
                 </div>
 
                 <div id="chatBox" class="flex-1 p-4 overflow-y-auto space-y-4 text-sm flex flex-col">

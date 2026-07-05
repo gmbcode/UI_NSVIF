@@ -517,7 +517,17 @@ function renderTreesList() {
         });
     });
 }
+const PLANNER_BASE =
+    "https://planner-agent-production-898c.up.railway.app/api/v1";
 
+let plannerSessionId = null;
+let plannerMode = "chat";
+let discoveryPoller = null;
+let currentDiscoveryStage = null;
+let currentDiscoveryQuestion = null;
+
+const USER_ID = "demo_user";
+const CUSTOMER_ID = "demo_user";
 // Initializer
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -529,6 +539,43 @@ document.addEventListener('DOMContentLoaded', () => {
     syncEditorToUiControls();
     renderTreesList();
 
+    async function startPlannerSession() {
+        try {
+            const res = await fetch(
+                `${PLANNER_BASE}/session/start`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        user_id: USER_ID,
+                        customer_id: CUSTOMER_ID
+                    })
+                }
+            );
+
+            const data = await res.json();
+
+            plannerSessionId = data.session_id;
+            document.getElementById("plannerStatus").textContent =
+                "Brief collection active";
+            const chatBox = document.getElementById("chatBox");
+
+            chatBox.innerHTML = "";
+
+            const msg = document.createElement("div");
+            msg.className =
+                "self-start bg-[#2e2e33] text-zinc-100 px-3 py-2 rounded-lg max-w-[90%]";
+            msg.textContent = data.message;
+
+            chatBox.appendChild(msg);
+        } catch (err) {
+            console.error("Planner start failed", err);
+        }
+    }
+
+    startPlannerSession();
     // UI Tools Setup
     document.getElementById('btnShapeRect').addEventListener('click', () => {
         window.editor.vertices = [[20, 20], [80, 20], [80, 80], [20, 80]];
@@ -609,33 +656,162 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatBox = document.getElementById('chatBox');
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
         const text = chatInput.value.trim();
-        if (!text) return;
+
+        if (!text || !plannerSessionId) return;
 
         const usrDiv = document.createElement('div');
-        usrDiv.className = "self-end bg-indigo-600 text-white px-3 py-2 rounded-lg max-w-[90%]";
+        usrDiv.className =
+            "self-end bg-indigo-600 text-white px-3 py-2 rounded-lg max-w-[90%]";
         usrDiv.textContent = text;
+
         chatBox.appendChild(usrDiv);
+
         chatInput.value = '';
         chatBox.scrollTop = chatBox.scrollHeight;
 
         try {
-            const res = await fetch('/api/planning/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text })
-            });
-            const data = await res.json();
 
-            setTimeout(() => {
+            if(plannerMode === "chat") {
+                const res = await fetch(
+                    `${PLANNER_BASE}/session/${plannerSessionId}/message`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            user_id: USER_ID,
+                            customer_id: CUSTOMER_ID,
+                            message: text
+                        })
+                    }
+                );
+
+                const data = await res.json();
+
                 const agtDiv = document.createElement('div');
-                agtDiv.className = "self-start bg-[#2e2e33] text-zinc-100 px-3 py-2 rounded-lg max-w-[90%]";
-                agtDiv.textContent = data.reply;
+
+                agtDiv.className =
+                    "self-start bg-[#2e2e33] text-zinc-100 px-3 py-2 rounded-lg max-w-[90%]";
+
+                agtDiv.textContent = data.message;
+
                 chatBox.appendChild(agtDiv);
                 chatBox.scrollTop = chatBox.scrollHeight;
-            }, 600);
-        } catch (e) {}
+
+                if (data.type === "brief_ready") {
+
+                    plannerMode = "discovery";
+
+                    localStorage.setItem(
+                        "plannerBrief",
+                        JSON.stringify(data.brief)
+                    );
+
+                    startDiscoveryPolling();
+                }
+            }
+            else{
+                res = await fetch(
+                    `${PLANNER_BASE}/session/${plannerSessionId}/discovery/answer`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            customer_id: CUSTOMER_ID,
+                            stage: currentDiscoveryStage,
+                            question: currentDiscoveryQuestion,
+                            answer: text
+                        })
+                    }
+                );
+            }
+
+        } catch (err) {
+            console.error(err);
+        }
     });
+
+    async function pollDiscovery() {
+
+        if (!plannerSessionId) return;
+
+        try {
+
+            const res = await fetch(
+                `${PLANNER_BASE}/session/${plannerSessionId}/discovery`
+            );
+
+            const data = await res.json();
+
+            if (data.done) {
+                document.getElementById("plannerStatus").textContent =
+                    "Design ready";
+
+                document.getElementById("plannerIndicator")
+                    .classList.remove("animate-pulse");
+                clearInterval(discoveryPoller);
+
+                const doneDiv = document.createElement('div');
+
+                doneDiv.className =
+                    "self-start bg-green-600 text-white px-3 py-2 rounded-lg max-w-[90%]";
+
+                doneDiv.textContent =
+                    "Design generation completed.";
+
+                chatBox.appendChild(doneDiv);
+
+                return;
+            }
+
+            if (data.user_facing_stage_message) {
+
+                const stageDiv = document.createElement('div');
+
+                stageDiv.className =
+                    "self-start bg-blue-600/20 text-blue-300 px-3 py-2 rounded-lg max-w-[90%]";
+
+                stageDiv.textContent =
+                    data.user_facing_stage_message;
+
+                chatBox.appendChild(stageDiv);
+            }
+
+            if (data.question) {
+                currentDiscoveryStage = data.stage;
+                currentDiscoveryQuestion = data.question;
+
+                const qDiv = document.createElement('div');
+
+                qDiv.className =
+                    "self-start bg-[#2e2e33] text-zinc-100 px-3 py-2 rounded-lg max-w-[90%]";
+
+                qDiv.textContent = data.question;
+
+                chatBox.appendChild(qDiv);
+            }
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function startDiscoveryPolling() {
+
+        pollDiscovery();
+
+        discoveryPoller = setInterval(
+            pollDiscovery,
+            5000
+        );
+    }
 
     // 4. Submission Logic
     document.getElementById('btnValidate').addEventListener('click', () => {
