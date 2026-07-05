@@ -79,7 +79,9 @@ async def dashboard():
 
     if not role:
         return redirect(url_for('complete_profile'))
-    if role != 'Architect':
+    if role == 'User':
+        return redirect(url_for('user_dashboard'))
+    elif role != 'Architect':
         return redirect(url_for('in_progress'))
     # --- ROLE CHECK END ---
 
@@ -111,7 +113,9 @@ async def project_dashboard():
     role = session.get('user_role')
     if not role:
         return redirect(url_for('complete_profile'))
-    if role != 'Architect':
+    if role == 'User':
+        return redirect(url_for('user_dashboard'))
+    elif role != 'Architect':
         return redirect(url_for('in_progress'))
     user_data = {"name": "Architect", "email": "No email provided"}
     try:
@@ -149,7 +153,9 @@ async def studio():
     role = session.get('user_role')
     if not role:
         return redirect(url_for('complete_profile'))
-    if role != 'Architect':
+    if role == 'User':
+        return redirect(url_for('user_dashboard'))
+    elif role != 'Architect':
         return redirect(url_for('in_progress'))
     user_data = {"name": "Architect", "email": "No email provided"}
     try:
@@ -181,7 +187,9 @@ async def iteration():
     role = session.get('user_role')
     if not role:
         return redirect(url_for('complete_profile'))
-    if role != 'Architect':
+    if role == 'User':
+        return redirect(url_for('user_dashboard'))
+    elif role != 'Architect':
         return redirect(url_for('in_progress'))
     user_data = {"name": "Architect", "email": "No email provided"}
     try:
@@ -242,7 +250,9 @@ async def multifloor():
     role = session.get('user_role')
     if not role:
         return redirect(url_for('complete_profile'))
-    if role != 'Architect':
+    if role == 'User':
+        return redirect(url_for('user_dashboard'))
+    elif role != 'Architect':
         return redirect(url_for('in_progress'))
     return render_template('multifloor.html')
 
@@ -326,7 +336,9 @@ async def outside_view():
     role = session.get('user_role')
     if not role:
         return redirect(url_for('complete_profile'))
-    if role != 'Architect':
+    if role == 'User':
+        return redirect(url_for('user_dashboard'))
+    elif role != 'Architect':
         return redirect(url_for('in_progress'))
     return render_template('outside_view.html')
 
@@ -365,6 +377,8 @@ async def complete_profile():
 
         if role == 'Architect':
             return redirect(url_for('dashboard'))
+        elif role == 'User':
+            return redirect(url_for('user_dashboard'))
         else:
             return redirect(url_for('in_progress'))
 
@@ -383,6 +397,39 @@ async def in_progress():
 
     return render_template('in_progress.html')
 
+@app.route('/user-dashboard')
+async def user_dashboard():
+    client = get_logto_client()
+    if not client.isAuthenticated():
+        return redirect(url_for('home'))
 
+    # --- USER ROLE CHECK ---
+    role = session.get('user_role')
+    user_id = session.get('user_id')
+
+    if not role:
+        return redirect(url_for('complete_profile'))
+    if role == 'Architect':
+        return redirect(url_for('dashboard'))
+    elif role != 'User':
+        return redirect(url_for('in_progress'))
+    # -----------------------
+
+    # Initialize default user data
+    user_data = {
+        "name": "Homeowner",
+        "email": session.get('user_email') or "No email provided"
+    }
+
+    # Fetch the actual name from Supabase
+    if user_id:
+        try:
+            response = supabase.table("users").select("name").eq("user_id", user_id).execute()
+            if response.data and len(response.data) > 0:
+                user_data["name"] = response.data[0].get("name") or "Homeowner"
+        except Exception as e:
+            print(f"Failed to fetch user from Supabase: {e}")
+
+    return render_template('user_dashboard.html', user=user_data)
 if __name__ == '__main__':
     app.run(debug=True)

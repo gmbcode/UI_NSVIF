@@ -94,11 +94,11 @@ async def callback():
                 session['user_role'] = role
                 if role == 'Architect':
                     return redirect(url_for('dashboard'))
+                elif role == 'User':
+                    return redirect(url_for('user_dashboard'))
                 else:
                     return redirect(url_for('in_progress'))
             else:
-                # If no role is found (due to the new schema), direct to complete_profile
-                # so they can set it in the session for routing purposes.
                 return redirect(url_for('complete_profile'))
         else:
             # New user: direct them to complete profile
