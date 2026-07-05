@@ -1,4 +1,4 @@
-/*! tailwindcss v4.3.2 | MIT License | https://tailwindcss.com */
+/*! tailwindcss v4.3.1 | MIT License | https://tailwindcss.com */
 @layer properties;
 @layer theme, base, components, utilities;
 @layer theme {
@@ -714,9 +714,6 @@
       background-color: color-mix(in oklab, var(--color-cyan-500) 10%, transparent);
     }
   }
-  .bg-cyan-600 {
-    background-color: var(--color-cyan-600);
-  }
   .bg-emerald-500\/10 {
     background-color: color-mix(in srgb, oklch(69.6% 0.17 162.48) 10%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -782,9 +779,6 @@
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-pink-500) 10%, transparent);
     }
-  }
-  .bg-pink-600 {
-    background-color: var(--color-pink-600);
   }
   .bg-red-500 {
     background-color: var(--color-red-500);
@@ -1160,13 +1154,6 @@
       }
     }
   }
-  .hover\:bg-cyan-500 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-cyan-500);
-      }
-    }
-  }
   .hover\:bg-green-500 {
     &:hover {
       @media (hover: hover) {
@@ -1188,13 +1175,6 @@
         @supports (color: color-mix(in lab, red, red)) {
           background-color: color-mix(in oklab, var(--color-indigo-600) 30%, transparent);
         }
-      }
-    }
-  }
-  .hover\:bg-pink-500 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-pink-500);
       }
     }
   }
@@ -1286,11 +1266,6 @@
   .lg\:col-span-7 {
     @media (width >= 64rem) {
       grid-column: span 7 / span 7;
-    }
-  }
-  .lg\:grid-cols-3 {
-    @media (width >= 64rem) {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
   .lg\:grid-cols-6 {

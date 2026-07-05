@@ -1,9 +1,11 @@
 # main.py
 import os
+from datetime import datetime, timezone
 
 # 1. FIX EZDXF CACHE: Redirect ezdxf's cache to Vercel's writable /tmp directory
 # MUST be set before importing ezdxf!
 from dotenv import load_dotenv
+
 load_dotenv()
 os.environ["EZDXF_CACHE_DIR"] = "/tmp"
 
@@ -13,12 +15,13 @@ import base64
 import tempfile
 import io
 
-import ezdxf 
+import ezdxf
 
 from auth import auth_bp, get_logto_client
 
 # 2. FIX MATPLOTLIB IMPORTS
 import matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
@@ -33,13 +36,13 @@ from ezdxf.addons.drawing.matplotlib import (
 )
 from supabase import create_client, Client
 
-
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret")
 app.register_blueprint(auth_bp, url_prefix="/auth")
 supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
 supabase: Client = create_client(supabase_url, supabase_key)
+
 # 3. APPLY FONT FIX
 # Make sure you have a .ttf file in your static folder!
 font_path = os.path.join(os.path.dirname(__file__), 'static', 'OpenSans-Regular.ttf')
@@ -48,13 +51,11 @@ if os.path.exists(font_path):
     # Register the font with Matplotlib
     font_manager.fontManager.addfont(font_path)
     prop = font_manager.FontProperties(fname=font_path)
-    
+
     # Force Matplotlib to use this font globally
     plt.rcParams['font.family'] = prop.get_name()
 else:
     print(f"Warning: Font not found at {font_path}. DXF text might render incorrectly.")
-
-
 
 
 @app.route('/')
@@ -74,6 +75,7 @@ async def dashboard():
     # --- ROLE CHECK START ---
     role = session.get('user_role')
     email = session.get('user_email')
+    user_id = session.get('user_id')
 
     if not role:
         return redirect(url_for('complete_profile'))
@@ -87,13 +89,13 @@ async def dashboard():
         "email": email or "No email provided"
     }
 
-    # Fetch the actual full_name from Supabase
-    if email:
+    # Fetch the actual name from Supabase using user_id
+    if user_id:
         try:
-            response = supabase.table("users").select("full_name").eq("email", email).execute()
+            response = supabase.table("users").select("name").eq("user_id", user_id).execute()
             if response.data and len(response.data) > 0:
-                # Overwrite the default name with the Supabase full_name
-                user_data["name"] = response.data[0].get("full_name", "Architect")
+                # Overwrite the default name with the Supabase name
+                user_data["name"] = response.data[0].get("name") or "Architect"
         except Exception as e:
             print(f"Failed to fetch user from Supabase: {e}")
 
@@ -137,8 +139,6 @@ def select_project():
     session['project_name'] = data.get('name', 'My Project')
     session['project_address'] = data.get('address', 'Unknown Address')
     return jsonify({"status": "success"})
-
-
 
 
 @app.route('/studio')
@@ -231,9 +231,10 @@ def mock_planning_chat():
         reply = "Understood. I am adding this constraint to the brief. Review the updated parameters when you're ready."
 
     return jsonify({"reply": reply})
+
+
 @app.route('/multifloor')
 async def multifloor():
-
     client = get_logto_client()
 
     if not client.isAuthenticated():
@@ -245,9 +246,9 @@ async def multifloor():
         return redirect(url_for('in_progress'))
     return render_template('multifloor.html')
 
+
 @app.route('/api/multifloor-image', methods=['POST'])
 def multifloor_image():
-
     response = requests.post(
         "http://16.176.176.187:8001/api/v1/generate-multifloor",
         json={"session_id": "sim_session_001"}
@@ -260,10 +261,9 @@ def multifloor_image():
     )
 
     with tempfile.NamedTemporaryFile(
-        suffix=".dxf",
-        delete=False
+            suffix=".dxf",
+            delete=False
     ) as tmp:
-
         tmp.write(dxf_bytes)
         dxf_path = tmp.name
 
@@ -294,9 +294,9 @@ def multifloor_image():
         mimetype="image/png"
     )
 
+
 @app.route('/api/multifloor-dxf', methods=['POST'])
 def multifloor_dxf():
-
     response = requests.post(
         "http://16.176.176.187:8001/api/v1/generate-multifloor",
         json={"session_id": "sim_session_001"}
@@ -316,6 +316,8 @@ def multifloor_dxf():
         as_attachment=True,
         download_name="multifloor.dxf"
     )
+
+
 @app.route('/outside-view')
 async def outside_view():
     client = get_logto_client()
@@ -336,18 +338,29 @@ async def complete_profile():
         return redirect(url_for('home'))
 
     email = session.get('user_email')
+    user_id = session.get('user_id')
 
     if request.method == 'POST':
         full_name = request.form.get('full_name')
         role = request.form.get('role')
 
-        # Insert new user profile into Supabase
-        supabase.table("users").upsert({
-            "email": email,
-            "full_name": full_name,
-            "role": role
-        }).execute()
+        if user_id:
+            now_iso = datetime.now(timezone.utc).isoformat()
 
+            # Insert/upsert new user profile into Supabase according to new schema
+            try:
+                supabase.table("users").upsert({
+                    "user_id": user_id,
+                    "email": email,
+                    "name": full_name,
+                    "last_login": now_iso
+                    # Notice: "role" is omitted here to prevent a crash, as it is no longer
+                    # in the database schema. The app will persist it via the session below.
+                }).execute()
+            except Exception as e:
+                print(f"Failed to upsert user profile: {e}")
+
+        # Maintain application logic by setting the role in the Flask session
         session['user_role'] = role
 
         if role == 'Architect':
@@ -369,5 +382,7 @@ async def in_progress():
         return redirect(url_for('dashboard'))
 
     return render_template('in_progress.html')
+
+
 if __name__ == '__main__':
     app.run(debug=True)
