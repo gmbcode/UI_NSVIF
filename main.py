@@ -81,6 +81,8 @@ async def dashboard():
         return redirect(url_for('complete_profile'))
     if role == 'User':
         return redirect(url_for('user_dashboard'))
+    elif role == 'Reviewer':
+        return redirect(url_for('reviewer_dashboard'))
     elif role != 'Architect':
         return redirect(url_for('in_progress'))
     # --- ROLE CHECK END ---
@@ -379,6 +381,8 @@ async def complete_profile():
             return redirect(url_for('dashboard'))
         elif role == 'User':
             return redirect(url_for('user_dashboard'))
+        elif role == 'Reviewer':
+            return redirect(url_for('reviewer_dashboard'))
         else:
             return redirect(url_for('in_progress'))
 
@@ -391,9 +395,14 @@ async def in_progress():
     if not client.isAuthenticated():
         return redirect(url_for('home'))
 
-    # Optional: ensure architects aren't accidentally trapped here
-    if session.get('user_role') == 'Architect':
+    # Optional: ensure specific roles aren't accidentally trapped here
+    role = session.get('user_role')
+    if role == 'Architect':
         return redirect(url_for('dashboard'))
+    elif role == 'User':
+        return redirect(url_for('user_dashboard'))
+    elif role == 'Reviewer':
+        return redirect(url_for('reviewer_dashboard'))
 
     return render_template('in_progress.html')
 
@@ -411,6 +420,8 @@ async def user_dashboard():
         return redirect(url_for('complete_profile'))
     if role == 'Architect':
         return redirect(url_for('dashboard'))
+    elif role == 'Reviewer':
+        return redirect(url_for('reviewer_dashboard'))
     elif role != 'User':
         return redirect(url_for('in_progress'))
     # -----------------------
@@ -431,5 +442,42 @@ async def user_dashboard():
             print(f"Failed to fetch user from Supabase: {e}")
 
     return render_template('user_dashboard.html', user=user_data)
+
+@app.route('/reviewer/dashboard')
+async def reviewer_dashboard():
+    client = get_logto_client()
+    if not client.isAuthenticated():
+        return redirect(url_for('home'))
+
+    # --- REVIEWER ROLE CHECK ---
+    role = session.get('user_role')
+    user_id = session.get('user_id')
+
+    if not role:
+        return redirect(url_for('complete_profile'))
+    if role == 'Architect':
+        return redirect(url_for('dashboard'))
+    elif role == 'User':
+        return redirect(url_for('user_dashboard'))
+    elif role != 'Reviewer':
+        return redirect(url_for('in_progress'))
+    # -----------------------
+
+    # Initialize default user data
+    user_data = {
+        "name": "Reviewer",
+        "email": session.get('user_email') or "No email provided"
+    }
+
+    # Fetch the actual name from Supabase
+    if user_id:
+        try:
+            response = supabase.table("users").select("name").eq("user_id", user_id).execute()
+            if response.data and len(response.data) > 0:
+                user_data["name"] = response.data[0].get("name") or "Reviewer"
+        except Exception as e:
+            print(f"Failed to fetch user from Supabase: {e}")
+
+    return render_template('reviewer_dashboard.html', user=user_data)
 if __name__ == '__main__':
     app.run(debug=True)

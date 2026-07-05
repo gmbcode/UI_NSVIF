@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PlotMySpace Dashboard</title>
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <script>
         // Check theme preference before rendering to avoid screen flashing
         if (localStorage.getItem('theme') === 'light') {
@@ -44,7 +44,7 @@
             --hover-purple: #4C2FE3;
         }
 
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: sans-serif; }
         
         /* Apply variables to override hardcoded dark classes when .light class is present on html */
         html.light body { background-color: var(--bg-page) !important; color: var(--text-primary) !important; }
@@ -190,7 +190,7 @@
           letter-spacing: 3px;
           text-decoration: none;
           font-size: var(--fs-size);
-          font-family: "Inter", sans-serif;
+          font-family: sans-serif;
           position: relative;
           text-transform: uppercase;
           color: transparent;

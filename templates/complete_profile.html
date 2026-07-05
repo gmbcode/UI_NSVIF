@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete Your Profile - HomeVision</title>
+    <title>Complete Your Profile - PlotMySpace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -26,7 +26,7 @@
     <div class="w-full max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
 
         <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome to HomeVision</h2>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome to PlotMySpace</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Let's set up your account to get started.</p>
         </div>
 
@@ -53,9 +53,9 @@
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">How will you use HomeVision?</label>
+                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">How will you use PlotMySpace?</label>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <label class="relative cursor-pointer">
                         <input type="radio" name="role" value="User" class="peer sr-only" required>
                         <div class="h-full p-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl peer-checked:border-primary-500 peer-checked:bg-blue-50 dark:peer-checked:bg-primary-900/20 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
@@ -82,6 +82,22 @@
                                 <h3 class="font-bold text-gray-900 dark:text-white">Architect</h3>
                             </div>
                             <p class="text-xs text-gray-500 dark:text-gray-400">I need full structural CAD access, layout generation, and feasibility tools.</p>
+                        </div>
+                        <div class="absolute top-4 right-4 hidden peer-checked:block text-primary-500">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        </div>
+                    </label>
+
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="role" value="Reviewer" class="peer sr-only" required>
+                        <div class="h-full p-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl peer-checked:border-primary-500 peer-checked:bg-blue-50 dark:peer-checked:bg-primary-900/20 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <div class="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </div>
+                                <h3 class="font-bold text-gray-900 dark:text-white">Reviewer</h3>
+                            </div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">I need to review final layouts, pending requests and completed work.</p>
                         </div>
                         <div class="absolute top-4 right-4 hidden peer-checked:block text-primary-500">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>

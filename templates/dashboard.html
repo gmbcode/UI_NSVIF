@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PlotMySpace - Project Portal</title>
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <script>
         // Check theme preference before rendering to avoid screen flashing
         if (localStorage.getItem('theme') === 'light') {
@@ -42,7 +42,7 @@
             --hover-purple: #4C2FE3;
         }
 
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-page); color: var(--text-primary); }
+        body { font-family: sans-serif; background-color: var(--bg-page); color: var(--text-primary); }
         
         /* Light theme styles overrides */
         html.light body { background-color: var(--bg-page) !important; color: var(--text-primary) !important; }

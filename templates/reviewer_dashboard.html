@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlotMySpace - Reviewer Portal</title>
+    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+    
+    <script>
+        // Check theme preference before rendering to avoid screen flashing
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+        } else {
+            document.documentElement.classList.remove('light');
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <style>
+        :root {
+            --bg-page: #0e0e10;
+            --bg-panel: #1c1c1f;
+            --bg-inner: #18181b;
+            --bg-hover: #26262b;
+            --text-primary: #f0f0f2;
+            --text-secondary: #a1a1aa;
+            --border-color: #2e2e33;
+            --input-bg: #0e0e10;
+        }
+        
+        html.light {
+            --bg-page: #FFFFFF;
+            --bg-panel: #F9FAFB;
+            --bg-inner: #FFFFFF;
+            --bg-hover: #E5E7EB;
+            --text-heading: #111827;
+            --text-primary: #374151;
+            --text-secondary: #6B7280;
+            --border-color: #E5E7EB;
+            --input-bg: #FFFFFF;
+            --primary-purple: #5B3DF5;
+            --hover-purple: #4C2FE3;
+        }
+
+        body { font-family: sans-serif; background-color: var(--bg-page); color: var(--text-primary); }
+        
+        /* Light theme styles overrides */
+        html.light body { background-color: var(--bg-page) !important; color: var(--text-primary) !important; }
+        html.light h1, html.light h2, html.light h3, html.light h4, html.light .font-bold, html.light .font-semibold {
+            color: var(--text-heading) !important;
+        }
+        html.light nav { background-color: var(--bg-page) !important; border-color: var(--border-color) !important; }
+        html.light nav .text-zinc-200 { color: var(--text-heading) !important; }
+        html.light nav .text-zinc-400 { color: var(--text-secondary) !important; }
+        html.light nav .text-zinc-500 { color: var(--text-secondary) !important; }
+        html.light .bg-\[\#1c1c1f\] { background-color: var(--bg-panel) !important; border-color: var(--border-color) !important; }
+        html.light .bg-\[\#18181b\] { background-color: var(--bg-inner) !important; border-color: var(--border-color) !important; }
+        html.light .border-\[\#2e2e33\] { border-color: var(--border-color) !important; }
+        html.light .text-zinc-100 { color: var(--text-primary) !important; }
+        html.light .text-zinc-300 { color: var(--text-primary) !important; }
+        html.light .text-zinc-400 { color: var(--text-secondary) !important; }
+        html.light .text-zinc-500 { color: var(--text-secondary) !important; }
+        
+        /* Purple theme color overrides */
+        html.light .bg-indigo-600 { background-color: var(--primary-purple) !important; }
+        html.light .hover\:bg-indigo-500:hover { background-color: var(--hover-purple) !important; }
+        html.light .text-indigo-500 { color: var(--primary-purple) !important; }
+        html.light .text-indigo-400 { color: var(--primary-purple) !important; }
+        html.light .border-indigo-500 { border-color: var(--primary-purple) !important; }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-page); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+        /* Theme switch button styles */
+        #theme-toggle-button {
+          font-size: 11px;
+          position: relative;
+          display: flex;
+          align-items: center;
+          width: 7em;
+          cursor: pointer;
+        }
+
+        #toggle {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+
+        #container, #patches, #stars, #button, #sun, #moon, #cloud {
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #toggle:checked + svg #container { fill: #2b4360; }
+        #toggle:checked + svg #button { transform: translate(28px, 2.333px); }
+        #sun { opacity: 1; }
+        #toggle:checked + svg #sun { opacity: 0; }
+        #moon { opacity: 0; }
+        #toggle:checked + svg #moon { opacity: 1; }
+        #cloud { opacity: 1; }
+        #toggle:checked + svg #cloud { opacity: 0; }
+        #stars { opacity: 0; }
+        #toggle:checked + svg #stars { opacity: 1; }
+
+        /* Portal Pane Cards */
+        .portal-card {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .portal-card:hover {
+            transform: translateY(-8px);
+            border-color: #6366f1; /* Purple focus on hover */
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4);
+        }
+        html.light .portal-card:hover {
+            box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.15);
+        }
+        
+        /* Tab Navigation */
+        .tab-button {
+            padding: 0.5rem 1rem;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .tab-button:hover {
+            color: var(--text-primary);
+        }
+        .tab-button.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+        }
+        html.light .tab-button.active {
+            color: var(--primary-purple);
+            border-bottom-color: var(--primary-purple);
+        }
+        
+        /* Content Sections */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-[#0e0e10] text-[#f0f0f2] h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Navbar -->
+    <nav class="h-16 shrink-0 border-b border-[#2e2e33] bg-[#0e0e10] flex items-center justify-between px-6 z-50">
+        <div class="flex items-center gap-8">
+            <div class="flex items-center gap-2 text-indigo-500 font-bold text-lg cursor-pointer" onclick="window.location.href='/reviewer/dashboard'">
+                <span>⌂</span><span>PlotMySpace</span>
+            </div>
+            <span class="text-xs text-zinc-500 uppercase tracking-widest border border-[#2e2e33] px-2 py-0.5 rounded">Reviewer Portal</span>
+            
+            <!-- Tabs in Navbar -->
+            <div class="hidden md:flex ml-8 h-full">
+                <button class="tab-button active h-full flex items-center" onclick="switchTab('pending')">
+                    Pending Requests
+                </button>
+                <button class="tab-button h-full flex items-center" onclick="switchTab('completed')">
+                    Completed Work
+                </button>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3 border-r border-[#2e2e33] pr-4">
+                <!-- Theme Toggle Switch -->
+                <label id="theme-toggle-button" class="mr-3" title="Toggle Light/Dark Mode">
+                    <input type="checkbox" id="toggle">
+                    <svg viewBox="0 0 69 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-[7em]">
+                        <rect id="container" width="69" height="28" rx="14" fill="#B3C7D6"/>
+                        <g id="stars" opacity="0">
+                            <circle cx="20" cy="8" r="0.7" fill="white" />
+                            <circle cx="15" cy="18" r="0.5" fill="white" />
+                            <circle cx="25" cy="20" r="0.6" fill="white" />
+                            <circle cx="35" cy="10" r="0.8" fill="white" opacity="0.8" />
+                        </g>
+                        <g id="cloud" opacity="1">
+                            <path d="M50 20a3.5 3.5 0 0 1 3.5-3.5 3.5 3.5 0 0 1 3.2 2.1 3 3 0 0 1 .8-.1 3 3 0 0 1 3 3 3 3 0 0 1-3 3H50a3.5 3.5 0 0 1 0-7" fill="white" opacity="0.9" />
+                        </g>
+                        <g id="button">
+                            <circle cx="14" cy="14" r="10" fill="#FFE555" />
+                            <g id="sun" opacity="1">
+                                <circle cx="14" cy="14" r="11.5" stroke="#FFE555" stroke-width="1.5" stroke-dasharray="3 2" />
+                            </g>
+                            <g id="moon" opacity="0">
+                                <circle cx="14" cy="14" r="10" fill="#D2D6DC" />
+                                <g id="patches">
+                                    <circle cx="10" cy="11" r="1.5" fill="#9BA3AF" />
+                                    <circle cx="15" cy="17" r="1" fill="#9BA3AF" />
+                                    <circle cx="17" cy="11" r="1.8" fill="#9BA3AF" />
+                                </g>
+                            </g>
+                        </g>
+                    </svg>
+                </label>
+
+                <div class="text-right">
+                    <div class="text-sm font-medium text-zinc-200">{{ user.name }}</div>
+                    <div class="text-[11px] text-zinc-500">{{ user.email }}</div>
+                </div>
+                <a href="{{ url_for('auth.sign_out') }}" class="p-1.5 rounded-md text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Sign Out">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Tabs (shown only on small screens) -->
+    <div class="md:hidden flex border-b border-[#2e2e33] bg-[#0e0e10] px-4">
+        <button class="tab-button active flex-1 py-3 text-sm text-center" onclick="switchTab('pending')">
+            Pending
+        </button>
+        <button class="tab-button flex-1 py-3 text-sm text-center" onclick="switchTab('completed')">
+            Completed
+        </button>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 p-8 overflow-y-auto w-full max-w-6xl mx-auto">
+        
+        <!-- Welcome Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-extrabold tracking-tight text-white mb-2">Reviewer Dashboard</h1>
+            <p class="text-base text-zinc-400">Manage layout reviews, check compliance, and approve user designs.</p>
+        </div>
+
+        <!-- Pending Requests Section -->
+        <div id="pending-section" class="tab-content active">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-zinc-100">Pending Requests (2)</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Mock Pending Item 1 -->
+                <div class="portal-card rounded-2xl p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center text-xl font-bold border border-orange-500/20">
+                                <span>⏳</span>
+                            </div>
+                            <span class="px-2.5 py-1 text-xs font-semibold text-orange-400 bg-orange-400/10 rounded-full border border-orange-400/20">Needs Review</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-zinc-100 mb-1">Sunset Villa Layout</h3>
+                        <p class="text-xs text-zinc-500 mb-3">Submitted by: architect1@example.com</p>
+                        <p class="text-sm text-zinc-400 leading-relaxed mb-4">
+                            Awaiting setback verification and structural compliance check for the new 2-story design.
+                        </p>
+                    </div>
+                    <button class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors text-sm font-medium mt-2">
+                        Start Review
+                    </button>
+                </div>
+                
+                <!-- Mock Pending Item 2 -->
+                <div class="portal-card rounded-2xl p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center text-xl font-bold border border-orange-500/20">
+                                <span>⏳</span>
+                            </div>
+                            <span class="px-2.5 py-1 text-xs font-semibold text-orange-400 bg-orange-400/10 rounded-full border border-orange-400/20">Needs Review</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-zinc-100 mb-1">Redmond Lodge Extension</h3>
+                        <p class="text-xs text-zinc-500 mb-3">Submitted by: user2@example.com</p>
+                        <p class="text-sm text-zinc-400 leading-relaxed mb-4">
+                            Client requested a review of the backyard addition and local zoning limits.
+                        </p>
+                    </div>
+                    <button class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors text-sm font-medium mt-2">
+                        Start Review
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Completed Work Section -->
+        <div id="completed-section" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-zinc-100">Completed Work (1)</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Mock Completed Item 1 -->
+                <div class="portal-card rounded-2xl p-6 flex flex-col justify-between opacity-80">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl font-bold border border-emerald-500/20">
+                                <span>✅</span>
+                            </div>
+                            <span class="px-2.5 py-1 text-xs font-semibold text-emerald-400 bg-emerald-400/10 rounded-full border border-emerald-400/20">Approved</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-zinc-100 mb-1">Seattle Downtown Loft</h3>
+                        <p class="text-xs text-zinc-500 mb-3">Reviewed on: Oct 12, 2023</p>
+                        <p class="text-sm text-zinc-400 leading-relaxed mb-4">
+                            All setbacks and structural constraints met local municipal codes.
+                        </p>
+                    </div>
+                    <button class="w-full py-2 bg-[#2e2e33] hover:bg-[#3f3f46] text-zinc-300 border border-[#3f3f46] rounded-lg transition-colors text-sm font-medium mt-2">
+                        View Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            // Update buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Try to find the button that was clicked and matches the tab (a bit hacky but works for this structure)
+            const clickedBtns = Array.from(document.querySelectorAll('.tab-button')).filter(btn => btn.getAttribute('onclick').includes(tabId));
+            clickedBtns.forEach(btn => btn.classList.add('active'));
+            
+            // Update content sections
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabId + '-section').classList.add('active');
+        }
+
+        // Theme Toggle Logic
+        const toggle = document.getElementById('toggle');
+        
+        // Set initial state
+        // In the CSS, checked = true means Moon (Dark mode visually).
+        // If theme is 'light', checked should be false (Sun).
+        // If theme is 'dark' or not set, checked should be true (Moon).
+        if (localStorage.getItem('theme') === 'light') {
+            toggle.checked = false;
+        } else {
+            toggle.checked = true;
+        }
+
+        toggle.addEventListener('change', function() {
+            if (!this.checked) {
+                // Not checked = Sun = Light mode
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+                localStorage.setItem('theme', 'light');
+            } else {
+                // Checked = Moon = Dark mode
+                document.documentElement.classList.remove('light');
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+    </script>
+</body>
+</html>
