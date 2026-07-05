@@ -1,5 +1,6 @@
 # auth.py
 import os
+from datetime import datetime, timezone
 from flask import Blueprint, session, redirect, url_for, request
 from logto import LogtoClient, LogtoConfig, Storage, UserInfoScope
 from typing import Union
@@ -49,7 +50,7 @@ async def callback():
     client = get_logto_client()
     await client.handleSignInCallback(request.url)
 
-    # Fetch user info to extract email
+    # Fetch user info to extract email and user_id (sub)
     try:
         user_info = await client.fetchUserInfo()
 
@@ -64,25 +65,41 @@ async def callback():
             info_dict = user_info if isinstance(user_info, dict) else {}
 
         email = info_dict.get('email')
+        user_id = info_dict.get('sub')  # Maps to the new user_id column
 
-        if not email:
-            return "Error: No email provided by identity provider.", 400
+        if not user_id:
+            return "Error: No user ID provided by identity provider.", 400
 
         session['user_email'] = email
+        session['user_id'] = user_id
 
-        # Check Supabase for existing user
-        response = supabase.table("users").select("*").eq("email", email).execute()
+        # Check Supabase for existing user using the new primary key (user_id)
+        response = supabase.table("users").select("*").eq("user_id", user_id).execute()
+        now_iso = datetime.now(timezone.utc).isoformat()
 
         if response.data and len(response.data) > 0:
-            # User exists: populate session and route based on role
             user_record = response.data[0]
-            role = user_record.get('role')
-            session['user_role'] = role
 
-            if role == 'Architect':
-                return redirect(url_for('dashboard'))
+            # Update last_login based on new schema
+            try:
+                supabase.table("users").update({"last_login": now_iso}).eq("user_id", user_id).execute()
+            except Exception as e:
+                print(f"Error updating last_login: {e}")
+
+            # Note: The 'role' column is not in the new schema.
+            # We attempt to fetch it in case it's added back, otherwise we fallback to complete_profile.
+            role = user_record.get('role')
+
+            if role:
+                session['user_role'] = role
+                if role == 'Architect':
+                    return redirect(url_for('dashboard'))
+                elif role == 'User':
+                    return redirect(url_for('user_dashboard'))
+                else:
+                    return redirect(url_for('in_progress'))
             else:
-                return redirect(url_for('in_progress'))
+                return redirect(url_for('complete_profile'))
         else:
             # New user: direct them to complete profile
             return redirect(url_for('complete_profile'))
@@ -98,6 +115,7 @@ async def sign_out():
     # Clear custom session data
     session.pop('user_email', None)
     session.pop('user_role', None)
+    session.pop('user_id', None)
 
     redirect_uri = url_for('home', _external=True)
     sign_out_url = await client.signOut(postLogoutRedirectUri=redirect_uri)
