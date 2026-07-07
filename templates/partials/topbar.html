@@ -47,3 +47,33 @@
         {% block topbar_actions %}{% endblock %}
     </div>
 </header>
+
+<!-- Global Theme Script -->
+<script>
+    // 1. Immediately apply theme to prevent flashing (runs as soon as topbar is parsed)
+    if (localStorage.getItem('theme') === 'light' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+    } else {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+    }
+
+    // 2. Attach click event to the toggle button
+    document.addEventListener('DOMContentLoaded', () => {
+        const themeBtn = document.getElementById('toggle-theme-btn');
+        if (themeBtn) {
+            themeBtn.addEventListener('click', () => {
+                if (document.documentElement.classList.contains('light')) {
+                    document.documentElement.classList.remove('light');
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+        }
+    });
+</script>

@@ -71,7 +71,12 @@ html.light .bg-\[\#26262b\] { background-color: var(--vertex-header) !important;
 html.light .border-\[\#2e2e33\] { border-color: var(--border-color) !important; }
 html.light .divide-\[\#2e2e33\] > * { border-color: var(--border-color) !important; }
 
+/* Subtle Backgrounds */
+html.light .hover\:bg-\[\#26262b\]\/50:hover { background-color: var(--bg-hover) !important; }
+html.light .bg-black\/60 { background-color: rgba(255, 255, 255, 0.9) !important; color: var(--text-primary) !important; border-color: var(--border-color) !important; }
+
 /* Text overrides */
+html.light .text-white { color: var(--text-heading) !important; }
 html.light .text-zinc-100 { color: var(--text-primary) !important; }
 html.light .text-zinc-200 { color: var(--text-primary) !important; }
 html.light .text-zinc-300 { color: var(--text-primary) !important; }

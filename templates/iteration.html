@@ -5,6 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PlotMySpace Iteration</title>
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+    <style>
+        /* Fullscreen display mode */
+        .display-fullscreen {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 9999 !important;
+            background-color: rgba(0,0,0,0.85) !important;
+            backdrop-filter: blur(12px) !important;
+            padding: 2rem !important;
+            margin: 0 !important;
+            max-width: 100% !important;
+            border-radius: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        
+        .display-fullscreen #dxfViewerContainer {
+            width: 100% !important;
+            max-width: 1200px !important;
+            height: 90vh !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+            border: 2px solid #6366f1 !important;
+            border-radius: 0.75rem !important;
+        }
+    </style>
 </head>
 <body class="bg-[var(--bg-page)] text-[var(--text-primary)] h-screen flex flex-col overflow-hidden">
 
@@ -39,44 +65,47 @@
                 </div>
 
                 <!-- Chat Form -->
-                <div class="p-3 border-t border-[#2e2e33] bg-[#18181b]">
+                <div class="p-3 border-t border-[#2e2e33] bg-[#18181b] flex flex-col gap-2">
                     <form id="iterationChatForm" class="flex items-center gap-2">
                         <input type="text" id="iterationChatInput" placeholder="Send feedback for the next iteration..." class="flex-1 min-w-0 bg-[#0e0e10] border border-[#2e2e33] focus:border-indigo-500 rounded-lg px-3 py-2 text-sm outline-none" required>
                         <button type="submit" class="shrink-0 p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors flex items-center justify-center">
                             <svg class="w-4 h-4 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
                         </button>
                     </form>
+                    <button onclick="window.location.href='/floor'" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-sm transition-all text-sm mt-1">
+                        Next
+                    </button>
                 </div>
             </div>
 
             <!-- Right Pane: Output of Iteration (DXF Drawing Viewer) -->
-            <div class="lg:col-span-7 bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 flex flex-col h-full relative">
+            <div class="lg:col-span-7 bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 flex flex-col h-full relative hidden lg:flex" id="iterationRightPane">
                 <div class="flex justify-between w-full items-center mb-3">
                     <div>
                         <h3 class="text-sm font-semibold" id="iterationTitle">Output of 1st Iteration:</h3>
                         <p class="text-[11px] text-zinc-500">Rendered DXF Blueprint Vector View</p>
                     </div>
-                    
-                    <div class="flex items-center gap-2">
-                        <!-- Toolbar Controls -->
-                        <button id="btnToggleWalls" class="px-2.5 py-1 bg-[#18181b] border border-[#2e2e33] hover:bg-[#26262b] text-[11px] rounded text-zinc-300">Toggle Walls</button>
-                        <button id="btnToggleDims" class="px-2.5 py-1 bg-[#18181b] border border-[#2e2e33] hover:bg-[#26262b] text-[11px] rounded text-zinc-300">Toggle Dimensions</button>
-                        <button id="btnExportDxf" class="px-2.5 py-1 bg-green-600 hover:bg-green-500 text-white text-[11px] font-medium rounded transition-colors shadow-sm">
-                            💾 Export DXF
-                        </button>
-                    </div>
                 </div>
 
                 <!-- Canvas Viewer -->
-                <div id="dxfViewerContainer" class="w-full flex-1 border border-[#2e2e33] rounded-lg bg-[#0e0e10] relative overflow-hidden cursor-crosshair">
-                    <canvas id="dxfCanvas" class="absolute inset-0"></canvas>
-                </div>
-
-                <!-- Footer Stats -->
-                <div class="flex justify-around items-center bg-[#18181b] border border-[#2e2e33] rounded-lg p-3 mt-3 text-xs">
-                    <div>Gross Area: <span class="font-semibold text-zinc-100">6,120 sq ft</span></div>
-                    <div>Setback Encroachment: <span class="font-semibold text-green-500">None (Pass)</span></div>
-                    <div>Tree Collision: <span class="font-semibold text-green-500">0.0 ft (Pass)</span></div>
+                <div id="dxfViewerWrap" class="self-start lg:self-auto bg-[#2e2e33] lg:bg-transparent p-2 lg:p-0 rounded-lg max-w-[100%] w-full lg:h-full flex-1 flex flex-col relative mt-2 lg:mt-0 transition-all duration-300 cursor-zoom-in">
+                    <div id="dxfViewerContainer" class="w-full h-[300px] lg:h-auto lg:flex-1 border border-[#2e2e33] rounded-lg bg-[#0e0e10] relative overflow-hidden transition-all duration-300 shadow-xl" onclick="toggleDisplay()">
+                        <canvas id="dxfCanvas" class="absolute inset-0 cursor-crosshair"></canvas>
+                        
+                        <!-- Close Button (Hidden by default) -->
+                        <button id="closeZoomBtn" class="absolute top-4 right-4 w-10 h-10 bg-red-500/90 hover:bg-red-500 text-white font-bold rounded-full shadow-lg backdrop-blur flex items-center justify-center transform transition-transform hover:scale-110 hidden z-20" onclick="toggleDisplay(); event.stopPropagation();">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                        
+                        <!-- Toolbar Controls (Hidden by default, positioned at bottom) -->
+                        <div id="canvasToolbar" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex flex-row flex-wrap justify-center gap-3 hidden z-10 w-full px-4" onclick="event.stopPropagation()">
+                            <button id="btnToggleWalls" class="px-4 py-2 bg-[#18181b]/90 border border-[#2e2e33] hover:bg-[#26262b] text-xs font-medium rounded-lg text-zinc-300 backdrop-blur shadow-2xl transform transition-transform hover:-translate-y-1">Toggle Walls</button>
+                            <button id="btnToggleDims" class="px-4 py-2 bg-[#18181b]/90 border border-[#2e2e33] hover:bg-[#26262b] text-xs font-medium rounded-lg text-zinc-300 backdrop-blur shadow-2xl transform transition-transform hover:-translate-y-1">Toggle Dimensions</button>
+                            <button id="btnExportDxf" class="px-4 py-2 bg-green-600/90 hover:bg-green-500 text-white text-xs font-bold rounded-lg transition-colors shadow-2xl backdrop-blur transform transition-transform hover:-translate-y-1">
+                                💾 Export DXF
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -97,6 +126,40 @@
         
         const inactiveClass = "flex items-center gap-2 px-3 py-1.5 rounded-lg opacity-60 text-zinc-300 font-medium text-sm cursor-pointer hover:opacity-100";
         const activeClass = "flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium text-sm";
+        
+        // Mobile Layout Adaptation
+        window.addEventListener('load', () => {
+            if (window.innerWidth < 1024) {
+                const chatBox = document.getElementById('iterationChatBox');
+                const viewer = document.getElementById('dxfViewerWrap');
+                if (chatBox && viewer) {
+                    // Append the display as a chat message on mobile
+                    chatBox.appendChild(viewer);
+                }
+            }
+        });
+        
+        function toggleDisplay() {
+            const wrap = document.getElementById('dxfViewerWrap');
+            const toolbar = document.getElementById('canvasToolbar');
+            const closeBtn = document.getElementById('closeZoomBtn');
+            
+            // Toggle fullscreen
+            wrap.classList.toggle('display-fullscreen');
+            
+            // Toggle visibility
+            toolbar.classList.toggle('hidden');
+            if (closeBtn) {
+                closeBtn.classList.toggle('hidden');
+            }
+            
+            // Toggle cursor style to indicate zoom out
+            if (wrap.classList.contains('display-fullscreen')) {
+                wrap.classList.replace('cursor-zoom-in', 'cursor-zoom-out');
+            } else {
+                wrap.classList.replace('cursor-zoom-out', 'cursor-zoom-in');
+            }
+        }
         
         ['nav-pitch', 'nav-window', 'nav-roof'].forEach(id => {
             const el = document.getElementById(id);

@@ -246,7 +246,10 @@ class PlotEditor {
         this.canvas.width = parent.clientWidth;
         this.canvas.height = parent.clientHeight;
         const size = Math.min(this.canvas.width, this.canvas.height);
-        this.scale = (size - 2 * this.margin) / 100;
+        
+        // Prevent negative scale when container is hidden (size = 0)
+        this.scale = Math.max(0.01, (size - 2 * this.margin) / 100);
+        
         this.offsetX = (this.canvas.width - (100 * this.scale)) / 2;
         this.offsetY = (this.canvas.height - (100 * this.scale)) / 2;
         this.draw();
@@ -258,6 +261,22 @@ class PlotEditor {
         this.canvas.addEventListener('mouseup', () => this.draggedIndex = -1);
         this.canvas.addEventListener('mouseleave', () => this.draggedIndex = -1);
         this.canvas.addEventListener('dblclick', e => this.onDoubleClick(e));
+        
+        // Touch Events for Mobile
+        this.canvas.addEventListener('touchstart', e => {
+            e.preventDefault(); // Prevent page scrolling
+            if(e.touches.length > 0) this.onMouseDown(e.touches[0]);
+        }, { passive: false });
+        
+        this.canvas.addEventListener('touchmove', e => {
+            e.preventDefault(); // Prevent page scrolling
+            if(e.touches.length > 0) this.onMouseMove(e.touches[0]);
+        }, { passive: false });
+        
+        this.canvas.addEventListener('touchend', e => {
+            e.preventDefault();
+            this.draggedIndex = -1;
+        }, { passive: false });
     }
 
     tx(wx) { return this.offsetX + wx * this.scale; }
@@ -842,47 +861,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 4. Submission Logic
-    document.getElementById('btnValidate').addEventListener('click', () => {
-        window.location.href = '/iteration';
-    });
+    const validateAction = () => { window.location.href = '/iteration'; };
+    const btnValidate = document.getElementById('btnValidate');
+    const btnValidateChat = document.getElementById('btnValidateChat');
+    if (btnValidate) btnValidate.addEventListener('click', validateAction);
+    if (btnValidateChat) btnValidateChat.addEventListener('click', validateAction);
 
     // 5. DXF/DWG File Import Logic
-    const dxfInput = document.getElementById('dxfFileInput');
-    if (dxfInput) {
-        dxfInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+    const uploadDxfAction = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        // For DXF files, we can still parse client-side if preferred, but let's send both to the backend for consistency
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch('/api/upload-dwg', {
+                method: 'POST',
+                body: formData
+            });
             
-            // For DXF files, we can still parse client-side if preferred, but let's send both to the backend for consistency
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            try {
-                const response = await fetch('/api/upload-dwg', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.vertices && data.vertices.length >= 3) {
-                        const normalized = normalizeVertices(data.vertices);
-                        window.editor.vertices = normalized;
-                        window.editor.draw();
-                        syncEditorToUiControls();
-                        alert(`Successfully imported ${data.filename} with ${normalized.length} vertices from backend!`);
-                    } else {
-                        alert("Invalid coordinates returned from the backend.");
-                    }
+            if (response.ok) {
+                const data = await response.json();
+                if (data.vertices && data.vertices.length >= 3) {
+                    const normalized = normalizeVertices(data.vertices);
+                    window.editor.vertices = normalized;
+                    window.editor.draw();
+                    syncEditorToUiControls();
+                    alert(`Successfully imported ${data.filename} with ${normalized.length} vertices from backend!`);
                 } else {
-                    alert("Failed to upload file to the server.");
+                    alert("Invalid coordinates returned from the backend.");
                 }
-            } catch (error) {
-                console.error("Error uploading file:", error);
-                alert("An error occurred while uploading the file.");
+            } else {
+                alert("Failed to upload file to the server.");
             }
-        });
-    }
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            alert("An error occurred while uploading the file.");
+        }
+        
+        // Clear the input so the same file can be uploaded again if needed
+        e.target.value = '';
+    };
+
+    document.querySelectorAll('input[type="file"][accept=".dxf,.dwg"]').forEach(input => {
+        input.addEventListener('change', uploadDxfAction);
+    });
 
     // 6. Light / Dark Mode Toggle Logic (Uiverse.io by rishichawda)
     const toggleCheckbox = document.getElementById('toggle');

@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PlotMySpace Dashboard</title>
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+    <style>
+        /* Mobile toggle behavior */
+        @media (max-width: 1023px) {
+            .mobile-mode-chat .manual-panel {
+                display: none !important;
+            }
+            .mobile-mode-manual .chat-panel {
+                display: none !important;
+            }
+        }
+    </style>
 </head>
 <body class="bg-[var(--bg-page)] text-[var(--text-primary)] h-screen flex flex-col overflow-hidden">
 
@@ -13,10 +24,24 @@
     <main class="app-main flex-1 h-screen flex flex-col">
         {% include 'partials/topbar.html' %}
 
-        <div class="flex-1 p-6 overflow-hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 h-full">
+        <div class="flex-1 p-4 lg:p-6 overflow-hidden flex flex-col">
+            
+            <!-- Mobile Toggle -->
+            <div class="lg:hidden flex items-center p-1 mb-4 bg-[#18181b] rounded-full border border-[#2e2e33] shrink-0">
+                <button id="btnChatMode" onclick="setMobileMode('chat')" class="flex-1 py-2 px-4 rounded-full text-sm font-bold bg-blue-600 text-white transition-all flex justify-center items-center gap-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path></svg>
+                    Chat Mode
+                </button>
+                <button id="btnManualMode" onclick="setMobileMode('manual')" class="flex-1 py-2 px-4 rounded-full text-sm font-bold text-zinc-400 hover:text-white transition-all flex justify-center items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    Manual Input
+                </button>
+            </div>
 
-            <div class="lg:col-span-3 bg-[#1c1c1f] border border-[#2e2e33] rounded-xl flex flex-col overflow-hidden h-full">
+            <div id="mobileViewManager" class="mobile-mode-chat flex-1 min-h-0">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 h-full overflow-y-auto lg:overflow-visible">
+
+            <div class="lg:col-span-3 chat-panel bg-[#1c1c1f] border border-[#2e2e33] rounded-xl flex flex-col overflow-hidden h-full min-h-[400px]">
                 <div class="p-4 border-b border-[#2e2e33] bg-[#18181b]">
                     <h3 class="text-sm font-semibold flex items-center gap-2">
                         <span id="plannerIndicator"
@@ -37,17 +62,25 @@
                     </div>
                 </div>
 
-                <div class="p-3 border-t border-[#2e2e33] bg-[#18181b]">
+                <div class="p-3 border-t border-[#2e2e33] bg-[#18181b] flex flex-col gap-2">
                     <form id="chatForm" class="flex items-center gap-2">
+                        <label class="shrink-0 p-2 bg-[#2e2e33] hover:bg-[#3f3f46] text-zinc-400 hover:text-white rounded-lg cursor-pointer transition-colors" title="Upload CAD (DWG/DXF)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                            <input type="file" id="chatDxfFileInput" accept=".dxf,.dwg" class="hidden dxf-upload-input">
+                        </label>
                         <input type="text" id="chatInput" placeholder="Type instructions..." class="flex-1 min-w-0 bg-[#0e0e10] border border-[#2e2e33] focus:border-indigo-500 rounded-lg px-3 py-2 text-sm outline-none" required>
                         <button type="submit" class="shrink-0 p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors flex items-center justify-center">
                             <svg class="w-4 h-4 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
                         </button>
                     </form>
+                    <button id="btnValidateChat" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        <span>Generate Design</span>
+                    </button>
                 </div>
             </div>
 
-            <div class="lg:col-span-5 flex flex-col gap-4 h-full">
+            <div class="lg:col-span-5 manual-panel flex flex-col gap-4 h-full min-h-[500px]">
                 <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 flex flex-col flex-1 relative">
 
                     <div class="flex flex-wrap justify-between w-full items-center gap-3 mb-3">
@@ -78,7 +111,128 @@
                     </div>
                 </div>
 
-                <div class="flex items-stretch gap-3">
+            </div>
+
+            <div class="lg:col-span-4 manual-panel flex flex-col gap-4 lg:overflow-y-auto lg:pr-2 h-full">
+
+                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0">
+                    <div class="flex items-center gap-2 cursor-pointer mb-3" onclick="toggleAccordion('zoningContent', this)">
+                        <h3 class="text-sm font-semibold">Zoning & Setbacks</h3>
+                        <svg class="chevron-icon w-4 h-4 transform transition-transform duration-200 rotate-180 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    <div id="zoningContent">
+                        <select id="regionSelect" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 text-sm rounded-lg px-3 py-2 outline-none mb-4 cursor-pointer text-zinc-200">
+                            <option value="seattle">Seattle, WA</option>
+                            <option value="bellevue">Bellevue, WA</option>
+                            <option value="redmond">Redmond, WA</option>
+                            <option value="bothell">Bothell, WA</option>
+                        </select>
+                        <div class="grid grid-cols-2 gap-2" id="setbackWidgets"></div>
+                    </div>
+                </div>
+
+                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0 flex flex-col">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2 cursor-pointer" onclick="toggleAccordion('treeContent', this)">
+                            <h3 class="text-sm font-semibold">Tree Protection Zones</h3>
+                            <svg class="chevron-icon w-4 h-4 transform transition-transform duration-200 rotate-180 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                        <button id="btnAddTree" type="button" class="px-2 py-1 bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 border border-indigo-600/50 rounded text-xs transition-colors">+ Add Tree</button>
+                    </div>
+                    <div id="treeContent">
+                        <div id="treeListContainer" class="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                            <!-- Dynamic Tree Items will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0">
+                    <div class="flex items-center gap-2 cursor-pointer mb-3" onclick="toggleAccordion('jsonContent', this)">
+                        <h3 class="text-sm font-semibold">Manual Coordinates (JSON)</h3>
+                        <svg class="chevron-icon w-4 h-4 transform transition-transform duration-200 rotate-180 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    <div id="jsonContent">
+                        <textarea id="jsonCoords" rows="2" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 rounded-lg p-2 text-[11px] font-mono outline-none"></textarea>
+                        <div class="flex justify-between items-center text-[10px] text-zinc-500 mt-2">
+                            <label class="px-2 py-1 border border-[#2e2e33] hover:bg-[#26262b] rounded-md transition-colors text-zinc-300 cursor-pointer flex items-center gap-1">
+                                <span>📤 Upload CAD (DWG/DXF)</span>
+                                <input type="file" id="dxfFileInput" accept=".dxf,.dwg" class="hidden">
+                            </label>
+                            <button id="btnClearAll" class="px-2 py-1 border border-[#2e2e33] hover:bg-[#26262b] rounded-md transition-colors text-zinc-300">Clear All</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 flex flex-col min-h-[220px] flex-1" id="vertexPanel">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2 cursor-pointer" onclick="toggleAccordion('vertexContent', this, 'vertexPanel')">
+                            <h3 class="text-sm font-semibold">Vertex Coordinates</h3>
+                            <svg class="chevron-icon w-4 h-4 transform transition-transform duration-200 rotate-180 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                        <button id="btnAddVertex" class="px-2 py-1 bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 border border-indigo-600/50 rounded text-xs transition-colors">+ Add Vertex</button>
+                    </div>
+                    <div id="vertexContent" class="flex-1 overflow-hidden flex flex-col">
+                        <div class="flex-1 overflow-y-auto border border-[#2e2e33] rounded-lg bg-[#18181b]">
+                            <table class="w-full text-xs text-left">
+                                <thead class="sticky top-0 bg-[#26262b] text-zinc-400 shadow-sm">
+                                    <tr>
+                                        <th class="px-3 py-2 font-medium">Vertex</th>
+                                        <th class="px-3 py-2 font-medium">X (ft)</th>
+                                        <th class="px-3 py-2 font-medium">Y (ft)</th>
+                                        <th class="px-3 py-2 font-medium text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vertexTableBody" class="divide-y divide-[#2e2e33]"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rooms Panel -->
+                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0" id="roomsPanel">
+                    <div class="flex items-center gap-2 cursor-pointer mb-3" onclick="toggleAccordion('roomsContent', this)">
+                        <h3 class="text-sm font-semibold">Room Requirements</h3>
+                        <svg class="chevron-icon w-4 h-4 transform transition-transform duration-200 rotate-180 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    <div id="roomsContent">
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center bg-[#18181b] border border-[#2e2e33] p-2.5 rounded-lg">
+                                <span class="text-xs text-zinc-300 font-medium">Bedroom</span>
+                                <div class="flex items-center gap-3">
+                                    <button class="w-6 h-6 flex items-center justify-center bg-[#2e2e33] hover:bg-[#3f3f46] rounded text-zinc-400 hover:text-white transition-colors" onclick="updateRoomCount('bedroom', -1)">-</button>
+                                    <span id="count-bedroom" class="text-sm font-semibold w-4 text-center">0</span>
+                                    <button class="w-6 h-6 flex items-center justify-center bg-[#2e2e33] hover:bg-[#3f3f46] rounded text-zinc-400 hover:text-white transition-colors" onclick="updateRoomCount('bedroom', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center bg-[#18181b] border border-[#2e2e33] p-2.5 rounded-lg">
+                                <span class="text-xs text-zinc-300 font-medium">Washroom</span>
+                                <div class="flex items-center gap-3">
+                                    <button class="w-6 h-6 flex items-center justify-center bg-[#2e2e33] hover:bg-[#3f3f46] rounded text-zinc-400 hover:text-white transition-colors" onclick="updateRoomCount('washroom', -1)">-</button>
+                                    <span id="count-washroom" class="text-sm font-semibold w-4 text-center">0</span>
+                                    <button class="w-6 h-6 flex items-center justify-center bg-[#2e2e33] hover:bg-[#3f3f46] rounded text-zinc-400 hover:text-white transition-colors" onclick="updateRoomCount('washroom', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center bg-[#18181b] border border-[#2e2e33] p-2.5 rounded-lg">
+                                <span class="text-xs text-zinc-300 font-medium">Living Room</span>
+                                <div class="flex items-center gap-3">
+                                    <button class="w-6 h-6 flex items-center justify-center bg-[#2e2e33] hover:bg-[#3f3f46] rounded text-zinc-400 hover:text-white transition-colors" onclick="updateRoomCount('livingroom', -1)">-</button>
+                                    <span id="count-livingroom" class="text-sm font-semibold w-4 text-center">0</span>
+                                    <button class="w-6 h-6 flex items-center justify-center bg-[#2e2e33] hover:bg-[#3f3f46] rounded text-zinc-400 hover:text-white transition-colors" onclick="updateRoomCount('livingroom', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center bg-[#18181b] border border-[#2e2e33] p-2.5 rounded-lg">
+                                <span class="text-xs text-zinc-300 font-medium">Kitchen</span>
+                                <div class="flex items-center gap-3">
+                                    <button class="w-6 h-6 flex items-center justify-center bg-[#2e2e33] hover:bg-[#3f3f46] rounded text-zinc-400 hover:text-white transition-colors" onclick="updateRoomCount('kitchen', -1)">-</button>
+                                    <span id="count-kitchen" class="text-sm font-semibold w-4 text-center">0</span>
+                                    <button class="w-6 h-6 flex items-center justify-center bg-[#2e2e33] hover:bg-[#3f3f46] rounded text-zinc-400 hover:text-white transition-colors" onclick="updateRoomCount('kitchen', 1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-stretch gap-3 mt-2">
                     <button id="btnValidate" class="flex-1 py-3 px-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-lg hover:shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
                         <span>Generate Design</span>
@@ -92,65 +246,10 @@
                         <span class="hidden sm:inline">Complete</span>
                     </button>
                 </div>
-            </div>
-
-            <div class="lg:col-span-4 flex flex-col gap-4 overflow-y-auto pr-2 h-full">
-
-                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0">
-                    <h3 class="text-sm font-semibold mb-3">Zoning & Setbacks</h3>
-                    <select id="regionSelect" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 text-sm rounded-lg px-3 py-2 outline-none mb-4 cursor-pointer text-zinc-200">
-                        <option value="seattle">Seattle, WA</option>
-                        <option value="bellevue">Bellevue, WA</option>
-                        <option value="redmond">Redmond, WA</option>
-                        <option value="bothell">Bothell, WA</option>
-                    </select>
-                    <div class="grid grid-cols-2 gap-2" id="setbackWidgets"></div>
-                </div>
-
-                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0 flex flex-col">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-sm font-semibold">Tree Protection Zones</h3>
-                        <button id="btnAddTree" type="button" class="px-2 py-1 bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 border border-indigo-600/50 rounded text-xs transition-colors">+ Add Tree</button>
-                    </div>
-                    <div id="treeListContainer" class="space-y-3 max-h-[220px] overflow-y-auto pr-1">
-                        <!-- Dynamic Tree Items will be inserted here -->
-                    </div>
-                </div>
-
-                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 shrink-0">
-                    <h3 class="text-sm font-semibold mb-3">Manual Coordinates (JSON)</h3>
-                    <textarea id="jsonCoords" rows="2" class="w-full bg-[#18181b] border border-[#2e2e33] focus:border-indigo-500 rounded-lg p-2 text-[11px] font-mono outline-none"></textarea>
-                    <div class="flex justify-between items-center text-[10px] text-zinc-500 mt-2">
-                        <label class="px-2 py-1 border border-[#2e2e33] hover:bg-[#26262b] rounded-md transition-colors text-zinc-300 cursor-pointer flex items-center gap-1">
-                            <span>📤 Upload DWG/DXF</span>
-                            <input type="file" id="dxfFileInput" accept=".dxf,.dwg" class="hidden">
-                        </label>
-                        <button id="btnClearAll" class="px-2 py-1 border border-[#2e2e33] hover:bg-[#26262b] rounded-md transition-colors text-zinc-300">Clear All</button>
-                    </div>
-                </div>
-
-                <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl p-4 flex flex-col min-h-[220px] flex-1">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-sm font-semibold">Vertex Coordinates</h3>
-                        <button id="btnAddVertex" class="px-2 py-1 bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 border border-indigo-600/50 rounded text-xs transition-colors">+ Add Vertex</button>
-                    </div>
-                    <div class="flex-1 overflow-y-auto border border-[#2e2e33] rounded-lg bg-[#18181b]">
-                        <table class="w-full text-xs text-left">
-                            <thead class="sticky top-0 bg-[#26262b] text-zinc-400 shadow-sm">
-                                <tr>
-                                    <th class="px-3 py-2 font-medium">Vertex</th>
-                                    <th class="px-3 py-2 font-medium">X (ft)</th>
-                                    <th class="px-3 py-2 font-medium">Y (ft)</th>
-                                    <th class="px-3 py-2 font-medium text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="vertexTableBody" class="divide-y divide-[#2e2e33]"></tbody>
-                        </table>
-                    </div>
-                </div>
 
             </div>
-        </div>
+            </div>
+            </div>
         </div>
     </main>
 
@@ -166,5 +265,68 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/studio.js') }}"></script>
+    <script>
+        function setMobileMode(mode) {
+            const manager = document.getElementById('mobileViewManager');
+            const btnChat = document.getElementById('btnChatMode');
+            const btnManual = document.getElementById('btnManualMode');
+            
+            if (mode === 'chat') {
+                manager.classList.remove('mobile-mode-manual');
+                manager.classList.add('mobile-mode-chat');
+                
+                btnChat.classList.add('bg-blue-600', 'text-white');
+                btnChat.classList.remove('text-zinc-400', 'hover:text-white');
+                
+                btnManual.classList.remove('bg-blue-600', 'text-white');
+                btnManual.classList.add('text-zinc-400', 'hover:text-white');
+            } else {
+                manager.classList.remove('mobile-mode-chat');
+                manager.classList.add('mobile-mode-manual');
+                
+                btnManual.classList.add('bg-blue-600', 'text-white');
+                btnManual.classList.remove('text-zinc-400', 'hover:text-white');
+                
+                btnChat.classList.remove('bg-blue-600', 'text-white');
+                btnChat.classList.add('text-zinc-400', 'hover:text-white');
+                
+                // The canvas parent was display:none, so it needs to recalculate its dimensions
+                setTimeout(() => {
+                    if (window.editor) {
+                        window.editor.resize();
+                    }
+                }, 10);
+            }
+        }
+
+        function toggleAccordion(contentId, headerElement, panelId = null) {
+            const content = document.getElementById(contentId);
+            const icon = headerElement.querySelector('.chevron-icon');
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+                if(panelId) {
+                    const panel = document.getElementById(panelId);
+                    panel.classList.add('flex-1', 'min-h-[220px]');
+                }
+            } else {
+                content.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+                if(panelId) {
+                    const panel = document.getElementById(panelId);
+                    panel.classList.remove('flex-1', 'min-h-[220px]');
+                }
+            }
+        }
+
+        function updateRoomCount(roomType, change) {
+            const countEl = document.getElementById(`count-${roomType}`);
+            let current = parseInt(countEl.innerText);
+            let next = current + change;
+            if (next < 0) next = 0;
+            countEl.innerText = next;
+        }
+    </script>
 </body>
 </html>
