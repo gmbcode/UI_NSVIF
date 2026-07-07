@@ -1,0 +1,49 @@
+<header class="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-[#2e2e33] bg-[var(--bg-page)] sticky top-0 z-30">
+    <div class="flex items-center gap-4">
+        <!-- Hamburger for mobile -->
+        <button onclick="toggleSidebar()" class="lg:hidden p-2 text-zinc-400 hover:text-white hover:bg-[#26262b] rounded-lg transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        
+        <!-- Horizontal Project Steps -->
+        <nav class="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth pl-2 py-1 max-w-[60vw] md:max-w-none">
+            <a href="{{ url_for('feasibility') }}" class="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors {% if request.endpoint == 'feasibility' %}bg-indigo-600/10 text-indigo-400{% else %}text-zinc-400 hover:text-zinc-100 hover:bg-[#26262b]{% endif %}">
+                {% if request.endpoint in ['studio', 'floorplan', 'iteration', 'multifloor'] %}
+                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                {% else %}
+                    <div class="w-2 h-2 rounded-full border border-current opacity-70"></div>
+                {% endif %}
+                Feasibility
+            </a>
+            
+            <svg class="w-4 h-4 text-zinc-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            
+            <a href="{{ url_for('studio') }}" class="flex-shrink-0 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors {% if request.endpoint == 'studio' %}bg-indigo-600/10 text-indigo-400{% else %}text-zinc-400 hover:text-zinc-100 hover:bg-[#26262b]{% endif %}">
+                Site Plan
+            </a>
+            
+            <svg class="w-4 h-4 text-zinc-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            
+            <a href="{{ url_for('studio') }}" class="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors {% if request.endpoint == 'floorplan' %}bg-indigo-600/10 text-indigo-400{% else %}text-zinc-400 hover:text-zinc-100 hover:bg-[#26262b]{% endif %}">
+                Floor Plan
+                <span class="text-[9px] font-bold bg-[#2e2e33] px-1.5 py-0.5 rounded text-zinc-300">PRO</span>
+            </a>
+
+            <svg class="w-4 h-4 text-zinc-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            
+            <a href="{{ url_for('iteration') }}" class="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors {% if request.endpoint == 'iteration' %}bg-indigo-600/10 text-indigo-400{% else %}text-zinc-400 hover:text-zinc-100 hover:bg-[#26262b]{% endif %}">
+                Pitch & Pack
+                <span class="text-[9px] font-bold bg-[#2e2e33] px-1.5 py-0.5 rounded text-zinc-300">PRO</span>
+            </a>
+        </nav>
+    </div>
+    
+    <!-- Optional Contextual Actions Area -->
+    <div class="flex items-center gap-3">
+        <button id="toggle-theme-btn" class="flex items-center gap-2 px-3 py-1.5 bg-[#18181b] border border-[#2e2e33] hover:bg-[#26262b] rounded-lg transition-colors text-xs font-medium text-zinc-300">
+            <span>Mode</span>
+            <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        </button>
+        {% block topbar_actions %}{% endblock %}
+    </div>
+</header>

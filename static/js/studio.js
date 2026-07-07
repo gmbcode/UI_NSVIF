@@ -555,6 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             );
 
+            if (!res.ok) throw new Error("Server error");
             const data = await res.json();
 
             plannerSessionId = data.session_id;
@@ -572,6 +573,18 @@ document.addEventListener('DOMContentLoaded', () => {
             chatBox.appendChild(msg);
         } catch (err) {
             console.error("Planner start failed", err);
+            plannerSessionId = "mock";
+            const statusEl = document.getElementById("plannerStatus");
+            statusEl.textContent = "Server Offline - Mock Mode";
+            statusEl.classList.remove("text-zinc-400");
+            statusEl.classList.add("text-amber-500");
+            
+            const chatBox = document.getElementById("chatBox");
+            chatBox.innerHTML = "";
+            const msg = document.createElement("div");
+            msg.className = "self-start bg-[#2e2e33] text-zinc-100 px-3 py-2 rounded-lg max-w-[90%]";
+            msg.textContent = "The planning agent server is offline. We are using mock outputs for now. What are your core requirements?";
+            chatBox.appendChild(msg);
         }
     }
 
@@ -672,6 +685,21 @@ document.addEventListener('DOMContentLoaded', () => {
         chatBox.scrollTop = chatBox.scrollHeight;
 
         try {
+            if (plannerSessionId === "mock") {
+                const res = await fetch("/api/planning/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await res.json();
+                
+                const agtDiv = document.createElement('div');
+                agtDiv.className = "self-start bg-[#2e2e33] text-zinc-100 px-3 py-2 rounded-lg max-w-[90%]";
+                agtDiv.textContent = data.reply;
+                chatBox.appendChild(agtDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                return;
+            }
 
             if(plannerMode === "chat") {
                 const res = await fetch(
@@ -818,28 +846,41 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = '/iteration';
     });
 
-    // 5. DXF File Import Logic
+    // 5. DXF/DWG File Import Logic
     const dxfInput = document.getElementById('dxfFileInput');
     if (dxfInput) {
-        dxfInput.addEventListener('change', (e) => {
+        dxfInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
             
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const text = event.target.result;
-                const rawVertices = parseDXF(text);
-                if (rawVertices && rawVertices.length >= 3) {
-                    const normalized = normalizeVertices(rawVertices);
-                    window.editor.vertices = normalized;
-                    window.editor.draw();
-                    syncEditorToUiControls();
-                    alert(`Successfully imported DXF plot boundary with ${normalized.length} vertices!`);
+            // For DXF files, we can still parse client-side if preferred, but let's send both to the backend for consistency
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/api/upload-dwg', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.vertices && data.vertices.length >= 3) {
+                        const normalized = normalizeVertices(data.vertices);
+                        window.editor.vertices = normalized;
+                        window.editor.draw();
+                        syncEditorToUiControls();
+                        alert(`Successfully imported ${data.filename} with ${normalized.length} vertices from backend!`);
+                    } else {
+                        alert("Invalid coordinates returned from the backend.");
+                    }
                 } else {
-                    alert("Could not find a valid closed polyline (boundary) in the DXF file. Ensure it contains a closed LWPOLYLINE entity.");
+                    alert("Failed to upload file to the server.");
                 }
-            };
-            reader.readAsText(file);
+            } catch (error) {
+                console.error("Error uploading file:", error);
+                alert("An error occurred while uploading the file.");
+            }
         });
     }
 

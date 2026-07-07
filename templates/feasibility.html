@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feasibility Analysis - PlotMySpace</title>
+    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+    <style>
+        .glass-panel {
+            background: linear-gradient(145deg, rgba(38, 38, 43, 0.8), rgba(28, 28, 31, 0.9));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-purple);
+            box-shadow: 0 10px 20px -5px rgba(91, 61, 245, 0.2);
+        }
+        
+        .status-badge {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        
+        /* Map pattern background */
+        .map-bg {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="bg-[var(--bg-page)] text-[var(--text-primary)]">
+    
+    {% include 'partials/sidebar.html' %}
+    
+    <main class="app-main min-h-screen flex flex-col">
+        {% include 'partials/topbar.html' %}
+        
+        <div class="p-6 lg:p-10 flex-1 overflow-y-auto">
+            <div class="max-w-6xl mx-auto space-y-8 animate-fade-in-up">
+                
+                <!-- Header Section -->
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-[#2e2e33]">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-full border border-emerald-500/30 status-badge">
+                                Analysis Complete
+                            </span>
+                            <span class="text-sm text-zinc-500 font-mono">ID: FA-2026-X8</span>
+                        </div>
+                        <h1 class="text-4xl font-extrabold text-white tracking-tight">Feasibility Analysis</h1>
+                        <p class="text-zinc-400 mt-2 text-lg">Zoning, compliance, and environmental constraints for <span class="text-zinc-200 font-semibold">{{ session.get('project_address', 'Selected Property') }}</span></p>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        <button class="btn-secondary flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Export PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Overall Verdict & Start Building CTA -->
+                <div class="glass-panel rounded-2xl p-8 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div class="absolute -right-20 -top-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    
+                    <div class="relative z-10 max-w-2xl">
+                        <h2 class="text-2xl font-bold text-white mb-3">Verdict: Highly Feasible</h2>
+                        <p class="text-zinc-300 leading-relaxed text-sm md:text-base">
+                            Based on local municipal codes (Zone R-3), this parcel supports residential development up to 3 stories. Environmental risk is low, and standard setbacks apply. The site geometry is favorable for both standard and custom floor plans.
+                        </p>
+                    </div>
+                    
+                    <div class="relative z-10 flex flex-col items-center">
+                        <p class="text-sm text-zinc-400 font-medium mb-3">Do you want to build?</p>
+                        <button onclick="window.location.href='{{ url_for('studio') }}'" class="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-emerald-500/25 transition-all transform hover:-translate-y-1 flex items-center gap-2">
+                            <span>Proceed to Site Plan</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Key Metrics Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="metric-card bg-[#1c1c1f] rounded-xl p-5 border border-[#2e2e33] flex flex-col justify-between h-36">
+                        <div class="text-zinc-400 text-sm font-medium">Zoning Classification</div>
+                        <div>
+                            <div class="text-3xl font-extrabold text-white mb-1">R-3</div>
+                            <div class="text-xs text-emerald-400 font-medium">Multi-Family Res</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card bg-[#1c1c1f] rounded-xl p-5 border border-[#2e2e33] flex flex-col justify-between h-36">
+                        <div class="text-zinc-400 text-sm font-medium">Max Allowable Height</div>
+                        <div>
+                            <div class="text-3xl font-extrabold text-white mb-1">35<span class="text-xl text-zinc-500">ft</span></div>
+                            <div class="text-xs text-zinc-500 font-medium">Or 3 stories max</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card bg-[#1c1c1f] rounded-xl p-5 border border-[#2e2e33] flex flex-col justify-between h-36">
+                        <div class="text-zinc-400 text-sm font-medium">Max Lot Coverage</div>
+                        <div>
+                            <div class="text-3xl font-extrabold text-white mb-1">45<span class="text-xl text-zinc-500">%</span></div>
+                            <div class="text-xs text-orange-400 font-medium">Standard limit applied</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card bg-[#1c1c1f] rounded-xl p-5 border border-[#2e2e33] flex flex-col justify-between h-36">
+                        <div class="text-zinc-400 text-sm font-medium">Environmental Risk</div>
+                        <div>
+                            <div class="text-3xl font-extrabold text-white mb-1 text-emerald-400">Low</div>
+                            <div class="text-xs text-zinc-500 font-medium">Not in flood zone</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Details Layout -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-10">
+                    <!-- Left Col: Setbacks -->
+                    <div class="lg:col-span-1 space-y-6">
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                            Required Setbacks
+                        </h3>
+                        <div class="bg-[#1c1c1f] border border-[#2e2e33] rounded-xl overflow-hidden">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-[#26262b] text-zinc-400 font-medium border-b border-[#2e2e33]">
+                                    <tr>
+                                        <th class="px-4 py-3">Boundary</th>
+                                        <th class="px-4 py-3 text-right">Distance</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-[#2e2e33]">
+                                    <tr class="hover:bg-[#26262b]/50 transition-colors">
+                                        <td class="px-4 py-3 text-zinc-200">Front (Street)</td>
+                                        <td class="px-4 py-3 text-right font-mono text-indigo-400">20 ft</td>
+                                    </tr>
+                                    <tr class="hover:bg-[#26262b]/50 transition-colors">
+                                        <td class="px-4 py-3 text-zinc-200">Rear</td>
+                                        <td class="px-4 py-3 text-right font-mono text-indigo-400">15 ft</td>
+                                    </tr>
+                                    <tr class="hover:bg-[#26262b]/50 transition-colors">
+                                        <td class="px-4 py-3 text-zinc-200">Side (Interior)</td>
+                                        <td class="px-4 py-3 text-right font-mono text-indigo-400">5 ft</td>
+                                    </tr>
+                                    <tr class="hover:bg-[#26262b]/50 transition-colors">
+                                        <td class="px-4 py-3 text-zinc-200">Side (Street)</td>
+                                        <td class="px-4 py-3 text-right font-mono text-indigo-400">10 ft</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Right Col: Mock Map / Visual -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                            Site Geometry Preview
+                        </h3>
+                        <div class="w-full h-[300px] bg-[#18181b] border border-[#2e2e33] rounded-xl flex items-center justify-center map-bg relative overflow-hidden">
+                            <!-- Dummy Plot Shape -->
+                            <svg viewBox="0 0 100 100" class="w-48 h-48 opacity-80" preserveAspectRatio="none">
+                                <!-- Plot outline -->
+                                <polygon points="10,10 90,20 80,90 20,80" fill="rgba(99, 102, 241, 0.1)" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="4" />
+                                <!-- Buildable area (minus setbacks) -->
+                                <polygon points="25,30 75,35 65,75 35,70" fill="rgba(16, 185, 129, 0.15)" stroke="#10b981" stroke-width="2" />
+                            </svg>
+                            
+                            <div class="absolute bottom-4 left-4 bg-black/60 backdrop-blur text-[10px] text-zinc-400 px-3 py-1.5 rounded-lg border border-white/10">
+                                <div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-indigo-500 block"></span> Property Line</div>
+                                <div class="flex items-center gap-2 mt-1"><span class="w-3 h-0.5 bg-emerald-500 block"></span> Buildable Envelope</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

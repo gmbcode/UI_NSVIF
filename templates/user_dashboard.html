@@ -1,77 +1,119 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Home Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>My Home Dashboard - PlotMySpace</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        .glass-card {
+            background: linear-gradient(145deg, rgba(38, 38, 43, 0.4), rgba(28, 28, 31, 0.6));
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.1);
+        }
+        
+        .icon-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            box-shadow: inset 0 0 10px rgba(99, 102, 241, 0.1);
+        }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans h-screen flex flex-col">
+<body class="bg-[var(--bg-page)] text-[var(--text-primary)] font-sans h-screen flex flex-col overflow-hidden">
 
-    <nav class="bg-white shadow-sm border-b px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center space-x-4">
-            <h1 class="text-xl font-bold text-blue-600">HomeVision</h1>
-            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">User Portal</span>
-        </div>
-        <div class="flex items-center space-x-6">
-            <span class="text-sm font-medium text-gray-600">Welcome, {{ user.name }}</span>
-            <a href="{{ url_for('auth.sign_out') }}" class="text-sm text-red-500 hover:text-red-700 font-medium">Sign Out</a>
-        </div>
-    </nav>
+    {% include 'partials/sidebar.html' %}
+    
+    <main class="app-main flex-1 flex flex-col overflow-y-auto">
+        {% include 'partials/topbar.html' %}
 
-    <main class="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8">
-        <header class="mb-8 border-b pb-4">
-            <h2 class="text-3xl font-extrabold text-gray-900">Project Overview</h2>
-            <p class="text-gray-500 mt-2">Manage your property details, view your layouts, and analyze market trends.</p>
-        </header>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col hover:shadow-md transition-shadow">
-                <div class="flex items-center space-x-3 mb-4">
-                    <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+        <div class="flex-1 max-w-7xl w-full mx-auto p-6 md:p-10 animate-fade-in-up">
+            
+            <!-- Header section with welcome and project image -->
+            <div class="flex flex-col lg:flex-row gap-8 items-center justify-between bg-gradient-to-r from-[#1c1c1f] to-[#18181b] border border-[#2e2e33] rounded-3xl p-8 mb-10 overflow-hidden relative">
+                <div class="absolute -right-20 -top-20 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 lg:w-2/3">
+                    <h2 class="text-4xl font-extrabold text-white tracking-tight mb-2">Welcome Home, {{ user.name.split()[0] if user.name else 'Owner' }}</h2>
+                    <p class="text-zinc-400 text-lg mb-6">Track the progress of your dream property at <span class="text-zinc-200 font-semibold">{{ session.get('project_address', 'Your Property') }}</span>.</p>
+                    <div class="flex gap-4">
+                        <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-full border border-emerald-500/20 flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> In Progress
+                        </span>
+                        <span class="px-3 py-1 bg-[#2e2e33]/50 text-zinc-300 text-xs font-medium rounded-full border border-[#2e2e33]">
+                            Architect: Demo Architect
+                        </span>
                     </div>
-                    <h3 class="text-xl font-bold">Market Analysis</h3>
                 </div>
-                <p class="text-gray-600 text-sm mb-6 flex-1">Evaluate current local market prices, neighborhood trends, and estimate the buying/selling value of your property.</p>
-                <button class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition">
-                    View Market Data
-                </button>
+                
+                <div class="relative z-10 lg:w-1/3 flex justify-end">
+                    <div class="w-48 h-48 rounded-full border-4 border-[#2e2e33] bg-[#1c1c1f] p-2 shadow-2xl relative overflow-hidden">
+                        <div class="absolute inset-0 border border-white/5 rounded-full m-2 flex items-center justify-center bg-[#0e0e10]">
+                            <svg class="w-20 h-20 text-indigo-500/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col hover:shadow-md transition-shadow">
-                <div class="flex items-center space-x-3 mb-4">
-                    <div class="p-3 bg-green-50 text-green-600 rounded-lg">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"></path></svg>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <!-- Feasibility -->
+                <div class="glass-card rounded-2xl p-6 flex flex-col cursor-pointer group" onclick="window.location.href='/feasibility'">
+                    <div class="flex items-center space-x-4 mb-5">
+                        <div class="p-3.5 icon-box text-emerald-400 rounded-xl group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Feasibility</h3>
                     </div>
-                    <h3 class="text-xl font-bold">Site Plan</h3>
+                    <p class="text-zinc-400 text-sm mb-8 flex-1 leading-relaxed">Review zoning laws, setbacks, and building constraints validated for your parcel.</p>
+                    <div class="flex items-center justify-between text-xs font-semibold text-emerald-400">
+                        <span>Analysis Complete</span>
+                        <span>→</span>
+                    </div>
                 </div>
-                <p class="text-gray-600 text-sm mb-6 flex-1">View the high-level map of your plot, property boundaries, and landscaping footprint.</p>
-                <button class="w-full bg-white text-green-600 border-2 border-green-600 font-semibold py-2 px-4 rounded-lg hover:bg-green-50 transition">
-                    Open Site Plan
-                </button>
+
+                <!-- Site Plan -->
+                <div class="glass-card rounded-2xl p-6 flex flex-col cursor-pointer group">
+                    <div class="flex items-center space-x-4 mb-5">
+                        <div class="p-3.5 icon-box text-blue-400 rounded-xl group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Site Plan</h3>
+                    </div>
+                    <p class="text-zinc-400 text-sm mb-8 flex-1 leading-relaxed">Visualize your plot boundaries, property envelope, and landscaping footprint.</p>
+                    <div class="flex items-center justify-between text-xs font-semibold text-blue-400">
+                        <span>View Plan</span>
+                        <span>→</span>
+                    </div>
+                </div>
+
+                <!-- Floor Plan -->
+                <div class="glass-card rounded-2xl p-6 flex flex-col cursor-pointer group">
+                    <div class="flex items-center space-x-4 mb-5">
+                        <div class="p-3.5 icon-box text-purple-400 rounded-xl group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Floor Plan</h3>
+                    </div>
+                    <p class="text-zinc-400 text-sm mb-8 flex-1 leading-relaxed">Explore internal room layouts, spatial flow, and living area dimensions.</p>
+                    <div class="flex items-center justify-between text-xs font-semibold text-purple-400">
+                        <span>Interactive Viewer</span>
+                        <span>→</span>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col hover:shadow-md transition-shadow">
-                <div class="flex items-center space-x-3 mb-4">
-                    <div class="p-3 bg-purple-50 text-purple-600 rounded-lg">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
-                    </div>
-                    <h3 class="text-xl font-bold">Floor Plan</h3>
+            <div class="mt-8 bg-[#18181b] rounded-xl p-5 flex items-start space-x-4 text-sm text-zinc-400 border border-[#2e2e33]">
+                <div class="p-1 bg-[#26262b] rounded flex-shrink-0">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
-                <p class="text-gray-600 text-sm mb-6 flex-1">Explore your internal 2D room layouts, dimensions, and spatial flow without the complex structural data.</p>
-                <button class="w-full bg-white text-purple-600 border-2 border-purple-600 font-semibold py-2 px-4 rounded-lg hover:bg-purple-50 transition">
-                    View Floor Layout
-                </button>
+                <p class="leading-relaxed"><strong>Note:</strong> Advanced technical details such as elevation grading, structural material feasibility, and deep cost-analysis are managed by your Architect. Contact your Architect for detailed structural updates.</p>
             </div>
-
-        </div>
-
-        <div class="mt-8 bg-gray-100 rounded-lg p-4 flex items-start space-x-3 text-sm text-gray-600 border border-gray-200">
-            <svg class="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <p><strong>Note:</strong> Advanced technical details such as elevation grading, structural material feasibility, and deep cost-analysis are managed by your Architect. Contact your Architect for detailed structural updates.</p>
         </div>
     </main>
 

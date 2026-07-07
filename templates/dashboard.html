@@ -5,108 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PlotMySpace - Project Portal</title>
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
-    
-    <script>
-        // Check theme preference before rendering to avoid screen flashing
-        if (localStorage.getItem('theme') === 'light') {
-            document.documentElement.classList.remove('dark');
-            document.documentElement.classList.add('light');
-        } else {
-            document.documentElement.classList.remove('light');
-            document.documentElement.classList.add('dark');
-        }
-    </script>
     <style>
-        :root {
-            --bg-page: #0e0e10;
-            --bg-panel: #1c1c1f;
-            --bg-inner: #18181b;
-            --bg-hover: #26262b;
-            --text-primary: #f0f0f2;
-            --text-secondary: #a1a1aa;
-            --border-color: #2e2e33;
-            --input-bg: #0e0e10;
-        }
-        
-        html.light {
-            --bg-page: #FFFFFF;
-            --bg-panel: #F9FAFB;
-            --bg-inner: #FFFFFF;
-            --bg-hover: #E5E7EB;
-            --text-heading: #111827;
-            --text-primary: #374151;
-            --text-secondary: #6B7280;
-            --border-color: #E5E7EB;
-            --input-bg: #FFFFFF;
-            --primary-purple: #5B3DF5;
-            --hover-purple: #4C2FE3;
-        }
-
-        body { font-family: sans-serif; background-color: var(--bg-page); color: var(--text-primary); }
-        
-        /* Light theme styles overrides */
-        html.light body { background-color: var(--bg-page) !important; color: var(--text-primary) !important; }
-        html.light h1, html.light h2, html.light h3, html.light h4, html.light .font-bold, html.light .font-semibold {
-            color: var(--text-heading) !important;
-        }
-        html.light nav { background-color: var(--bg-page) !important; border-color: var(--border-color) !important; }
-        html.light nav .text-zinc-200 { color: var(--text-heading) !important; }
-        html.light nav .text-zinc-400 { color: var(--text-secondary) !important; }
-        html.light nav .text-zinc-500 { color: var(--text-secondary) !important; }
-        html.light .bg-\[\#1c1c1f\] { background-color: var(--bg-panel) !important; border-color: var(--border-color) !important; }
-        html.light .bg-\[\#18181b\] { background-color: var(--bg-inner) !important; border-color: var(--border-color) !important; }
-        html.light .border-\[\#2e2e33\] { border-color: var(--border-color) !important; }
-        html.light .text-zinc-100 { color: var(--text-primary) !important; }
-        html.light .text-zinc-300 { color: var(--text-primary) !important; }
-        html.light .text-zinc-400 { color: var(--text-secondary) !important; }
-        html.light .text-zinc-500 { color: var(--text-secondary) !important; }
-        
-        /* Purple theme color overrides */
-        html.light .bg-indigo-600 { background-color: var(--primary-purple) !important; }
-        html.light .hover\:bg-indigo-500:hover { background-color: var(--hover-purple) !important; }
-        html.light .text-indigo-500 { color: var(--primary-purple) !important; }
-        html.light .text-indigo-400 { color: var(--primary-purple) !important; }
-        
-        /* Scrollbar styling */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-page); }
-        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
-
-        .modal-active { display: flex !important; }
-        .modal-enter { opacity: 1 !important; transform: scale(1) !important; }
-
-        /* Theme switch button styles */
-        #theme-toggle-button {
-          font-size: 11px;
-          position: relative;
-          display: flex;
-          align-items: center;
-          width: 7em;
-          cursor: pointer;
-        }
-
-        #toggle {
-          opacity: 0;
-          width: 0;
-          height: 0;
-        }
-
-        #container, #patches, #stars, #button, #sun, #moon, #cloud {
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        #toggle:checked + svg #container { fill: #2b4360; }
-        #toggle:checked + svg #button { transform: translate(28px, 2.333px); }
-        #sun { opacity: 1; }
-        #toggle:checked + svg #sun { opacity: 0; }
-        #moon { opacity: 0; }
-        #toggle:checked + svg #moon { opacity: 1; }
-        #cloud { opacity: 1; }
-        #toggle:checked + svg #cloud { opacity: 0; }
-        #stars { opacity: 0; }
-        #toggle:checked + svg #stars { opacity: 1; }
-
         /* Portal Pane Cards */
         .portal-card {
             background-color: var(--bg-panel);
@@ -123,63 +22,14 @@
         }
     </style>
 </head>
-<body class="bg-[#0e0e10] text-[#f0f0f2] h-screen flex flex-col overflow-hidden">
+<body class="bg-[var(--bg-page)] text-[var(--text-primary)]">
 
-    <!-- Top Navbar -->
-    <nav class="h-16 shrink-0 border-b border-[#2e2e33] bg-[#0e0e10] flex items-center justify-between px-6 z-50">
-        <div class="flex items-center gap-8">
-            <div class="flex items-center gap-2 text-indigo-500 font-bold text-lg cursor-pointer" onclick="window.location.href='/dashboard'">
-                <span>⌂</span><span>PlotMySpace</span>
-            </div>
-            <span class="text-xs text-zinc-500 uppercase tracking-widest border border-[#2e2e33] px-2 py-0.5 rounded">Portal</span>
-        </div>
-
-        <div class="flex items-center gap-4">
-            <div class="flex items-center gap-3 border-r border-[#2e2e33] pr-4">
-                <!-- Theme Toggle Switch -->
-                <label id="theme-toggle-button" class="mr-3" title="Toggle Light/Dark Mode">
-                    <input type="checkbox" id="toggle">
-                    <svg viewBox="0 0 69 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-[7em]">
-                        <rect id="container" width="69" height="28" rx="14" fill="#B3C7D6"/>
-                        <g id="stars" opacity="0">
-                            <circle cx="20" cy="8" r="0.7" fill="white" />
-                            <circle cx="15" cy="18" r="0.5" fill="white" />
-                            <circle cx="25" cy="20" r="0.6" fill="white" />
-                            <circle cx="35" cy="10" r="0.8" fill="white" opacity="0.8" />
-                        </g>
-                        <g id="cloud" opacity="1">
-                            <path d="M50 20a3.5 3.5 0 0 1 3.5-3.5 3.5 3.5 0 0 1 3.2 2.1 3 3 0 0 1 .8-.1 3 3 0 0 1 3 3 3 3 0 0 1-3 3H50a3.5 3.5 0 0 1 0-7" fill="white" opacity="0.9" />
-                        </g>
-                        <g id="button">
-                            <circle cx="14" cy="14" r="10" fill="#FFE555" />
-                            <g id="sun" opacity="1">
-                                <circle cx="14" cy="14" r="11.5" stroke="#FFE555" stroke-width="1.5" stroke-dasharray="3 2" />
-                            </g>
-                            <g id="moon" opacity="0">
-                                <circle cx="14" cy="14" r="10" fill="#D2D6DC" />
-                                <g id="patches">
-                                    <circle cx="10" cy="11" r="1.5" fill="#9BA3AF" />
-                                    <circle cx="15" cy="17" r="1" fill="#9BA3AF" />
-                                    <circle cx="17" cy="11" r="1.8" fill="#9BA3AF" />
-                                </g>
-                            </g>
-                        </g>
-                    </svg>
-                </label>
-
-                <div class="text-right">
-                    <div class="text-sm font-medium text-zinc-200">{{ user.name }}</div>
-                    <div class="text-[11px] text-zinc-500">{{ user.email }}</div>
-                </div>
-                <a href="{{ url_for('auth.sign_out') }}" class="p-1.5 rounded-md text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Sign Out">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                </a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Portal View -->
-    <main class="flex-1 p-12 overflow-y-auto flex flex-col items-center justify-center">
+    {% include 'partials/sidebar.html' %}
+    
+    <main class="app-main min-h-screen flex flex-col">
+        {% include 'partials/topbar.html' %}
+        
+        <div class="flex-1 p-6 lg:p-12 overflow-y-auto flex flex-col items-center justify-center">
         
         <!-- Welcome Header -->
         <div class="w-full max-w-4xl text-center mb-12">
@@ -190,7 +40,24 @@
         <!-- Two-Pane Layout -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
             
-            <!-- Left Pane: Building Studio -->
+            <!-- Left Pane: Feasibility Analysis (First) -->
+            <div id="btnFeasibilityCard" class="portal-card rounded-3xl p-8 flex flex-col justify-between cursor-pointer min-h-[320px]" onclick="window.location.href='/feasibility'">
+                <div>
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-600/10 text-emerald-400 flex items-center justify-center mb-6 text-2xl font-bold border border-emerald-500/20">
+                        <span>📈</span>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-zinc-100 mb-3">Feasibility Analysis</h2>
+                    <p class="text-sm text-zinc-400 leading-relaxed">
+                        Evaluate zoning feasibility, permitting likelihood, setbacks, and basic build constraints before starting your design.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 text-emerald-400 text-sm font-semibold mt-4">
+                    <span>Evaluate Feasibility</span>
+                    <span>→</span>
+                </div>
+            </div>
+
+            <!-- Right Pane: Building Studio (Second) -->
             <div id="btnBuildingCard" class="portal-card rounded-3xl p-8 flex flex-col justify-between cursor-pointer min-h-[320px]">
                 <div>
                     <div class="w-14 h-14 rounded-2xl bg-indigo-600/10 text-indigo-400 flex items-center justify-center mb-6 text-2xl font-bold border border-indigo-500/20">
@@ -198,7 +65,7 @@
                     </div>
                     <h2 class="text-2xl font-extrabold text-zinc-100 mb-3">Building Studio</h2>
                     <p class="text-sm text-zinc-400 leading-relaxed">
-                        Create layout designs, check municipal setbacks, run multi-floor planners, and generate compliance blueprints.
+                        Create layout designs, run multi-floor planners, and generate compliance blueprints.
                     </p>
                 </div>
                 <div class="flex items-center gap-2 text-indigo-400 text-sm font-semibold mt-4">
@@ -207,26 +74,8 @@
                 </div>
             </div>
 
-            <!-- Right Pane: Market Analysis -->
-            <div id="btnMarketAnalysisCard" class="portal-card rounded-3xl p-8 flex flex-col justify-between cursor-pointer min-h-[320px] opacity-75 hover:opacity-100">
-                <div>
-                    <div class="w-14 h-14 rounded-2xl bg-emerald-600/10 text-emerald-400 flex items-center justify-center mb-6 text-2xl font-bold border border-emerald-500/20">
-                        <span>📈</span>
-                    </div>
-                    <h2 class="text-2xl font-extrabold text-zinc-100 mb-3">Market Analysis</h2>
-                    <p class="text-sm text-zinc-400 leading-relaxed">
-                        Explore suburban stats, check local property values, evaluate neighborhood safety ranks, and calculate cost estimates.
-                    </p>
-                </div>
-                <div class="flex items-center gap-2 text-emerald-400 text-sm font-semibold mt-4">
-                    <span>Explore Suburbs (Coming Soon)</span>
-                    <span>→</span>
-                </div>
-            </div>
-
         </div>
-
-    </main>
+        </div>
 
     <!-- Add Project Modal -->
     <div id="projectModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center transition-all duration-300">
